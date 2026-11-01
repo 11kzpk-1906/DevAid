@@ -13,6 +13,7 @@ from devaid.diagnostics.documentation import check_documentation
 from devaid.diagnostics.environment import check_environment
 from devaid.diagnostics.git import git_doctor
 from devaid.diagnostics.health import health_check
+from devaid.diagnostics.performance import performance_doctor
 from devaid.diagnostics.release import release_doctor
 from devaid.diagnostics.security import check_security
 from devaid.diagnostics.suggestions import show_suggestions
@@ -44,6 +45,7 @@ def run_doctor(path: Path) -> None:
         ("Test readiness", lambda: test_doctor(root)),
         ("Git repository", lambda: git_doctor(root)),
         ("Release readiness", lambda: release_doctor(root)),
+        ("Performance hygiene", lambda: performance_doctor(root)),
         ("Environment", check_environment),
     )
 
