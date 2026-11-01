@@ -13,12 +13,13 @@ from devaid.diagnostics.documentation import check_documentation
 from devaid.diagnostics.environment import check_environment
 from devaid.diagnostics.health import health_check
 from devaid.diagnostics.security import check_security
+from devaid.diagnostics.suggestions import show_suggestions
 
 console = Console()
 
 
 def run_doctor(path: Path) -> None:
-    """Run all offline project checks in one command."""
+    """Run all offline project checks and provide prioritized next steps."""
     if not path.exists() or not path.is_dir():
         console.print("[bold red]Error:[/bold red] Invalid project directory.")
         raise typer.Exit(code=1)
@@ -44,9 +45,10 @@ def run_doctor(path: Path) -> None:
         console.print(Rule(f"[bold]{index}/{len(checks)} · {label}[/bold]"))
         check()
 
-    console.print(
-        Rule("[bold green]Full Doctor complete[/bold green]")
-    )
+    console.print(Rule("[bold cyan]Prioritized fix suggestions[/bold cyan]"))
+    show_suggestions(root)
+
+    console.print(Rule("[bold green]Full Doctor complete[/bold green]"))
     console.print(
         "[dim]Review each report above. A clean result is a useful baseline, "
         "not a guarantee that a project is bug-free or secure.[/dim]"
