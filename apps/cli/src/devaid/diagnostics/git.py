@@ -56,7 +56,7 @@ def inspect_git(path: Path) -> list[tuple[str, str, str]]:
     else:
         status_lines = status_result.stdout.splitlines()
         changes = [line for line in status_lines if not line.startswith("##")]
-        staged = sum(line[:2] != "  " and line[:2] != "??" for line in changes)
+        staged = sum(line[0:1] not in (" ", "?") for line in changes)
         unstaged = sum(line[1:2] not in (" ", "?") for line in changes)
         untracked = sum(line.startswith("??") for line in changes)
 
