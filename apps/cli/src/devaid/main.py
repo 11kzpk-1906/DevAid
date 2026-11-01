@@ -21,6 +21,7 @@ from devaid.diagnostics.release import release_doctor
 from devaid.diagnostics.security import check_security
 from devaid.diagnostics.suggestions import show_suggestions
 from devaid.diagnostics.test_doctor import test_doctor
+from devaid.diagnostics.workflows import workflow_doctor
 
 app = typer.Typer(
     name="devaid",
@@ -59,6 +60,7 @@ app.command(name="env")(check_environment)
 app.command(name="api")(inspect_api)
 app.command(name="docs")(check_documentation)
 app.command(name="security")(check_security)
+app.command(name="workflow-doctor")(workflow_doctor)
 
 if __name__ == "__main__":
     app()
