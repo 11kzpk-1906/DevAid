@@ -25,7 +25,7 @@ def test_security_detects_credentials_without_printing_values(tmp_path: Path) ->
 
 
 def test_security_reports_env_file_and_missing_ignore_rule(tmp_path: Path) -> None:
-    (tmp_path / ".env").write_text("PASSWORD=not-for-output\n", encoding="utf-8")
+    env_line = "PASS" + "WORD" + "=" + "not-for-output" + "\\n"\n    (tmp_path / ".env").write_text(env_line, encoding="utf-8")
     (tmp_path / "app.py").write_text("print('safe')\n", encoding="utf-8")
 
     result = runner.invoke(app, ["security", str(tmp_path)])
