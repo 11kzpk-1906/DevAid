@@ -33,9 +33,10 @@ def test_full_doctor_runs_all_local_checks(tmp_path: Path) -> None:
     assert "Git Doctor" in result.output
     assert "Release Doctor" in result.output
     assert "Performance Doctor" in result.output
+    assert "Accessibility Doctor" in result.output
     assert "Full Doctor complete" in result.output
     assert "Final summary:" in result.output
-    assert "11/11 diagnostic reports completed" in " ".join(result.output.split())
+    assert "12/12 diagnostic reports completed" in " ".join(result.output.split())
 
 
 def test_full_doctor_rejects_invalid_directory(tmp_path: Path) -> None:
