@@ -13,6 +13,7 @@ from devaid.diagnostics.deployment import check_deployment
 from devaid.diagnostics.doctor import run_doctor
 from devaid.diagnostics.documentation import check_documentation
 from devaid.diagnostics.environment import check_environment
+from devaid.diagnostics.git import git_doctor
 from devaid.diagnostics.health import health_check
 from devaid.diagnostics.security import check_security
 from devaid.diagnostics.suggestions import show_suggestions
@@ -44,6 +45,7 @@ app.command(name="deps")(check_dependencies)
 app.command(name="doctor")(run_doctor)
 app.command(name="suggest")(show_suggestions)
 app.command(name="test-doctor")(test_doctor)
+app.command(name="git")(git_doctor)
 app.command(name="deploy")(check_deployment)
 app.command(name="health")(health_check)
 app.command(name="config")(check_config)
