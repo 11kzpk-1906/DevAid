@@ -1,6 +1,7 @@
 """Read-only project performance hygiene diagnostics."""
 
 import json
+import os
 from pathlib import Path
 
 import typer
@@ -86,7 +87,7 @@ def inspect_performance(path: Path) -> list[tuple[str, str, str]]:
     large_assets: list[str] = []
     truncated = False
 
-    for current, directories, files in __import__("os").walk(path):
+    for current, directories, files in os.walk(path):
         directories[:] = [name for name in directories if name not in SKIP_DIRS]
         for filename in files:
             scanned += 1
