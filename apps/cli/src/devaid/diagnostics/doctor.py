@@ -49,15 +49,22 @@ def run_doctor(path: Path) -> None:
         ("Environment", check_environment),
     )
 
+    completed = 0
     for index, (label, check) in enumerate(checks, start=1):
         console.print(Rule(f"[bold]{index}/{len(checks)} · {label}[/bold]"))
         check()
+        completed += 1
 
     console.print(Rule("[bold cyan]Prioritized fix suggestions[/bold cyan]"))
     show_suggestions(root)
 
     console.print(Rule("[bold green]Full Doctor complete[/bold green]"))
     console.print(
-        "[dim]Review each report above. A clean result is a useful baseline, "
-        "not a guarantee that a project is bug-free or secure.[/dim]"
+        f"\n[bold]Final summary:[/bold] {completed}/{len(checks)} diagnostic reports "
+        "completed; prioritized fix suggestions generated."
+    )
+    console.print(
+        "[dim]Each report contains its own PASS/REVIEW/ERROR/INFO counts. "
+        "Review those findings above; this summary does not combine their statuses. "
+        "A clean result is not a guarantee that a project is bug-free or secure.[/dim]"
     )
