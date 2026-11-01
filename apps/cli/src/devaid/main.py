@@ -13,6 +13,7 @@ from devaid.diagnostics.deployment import check_deployment
 from devaid.diagnostics.documentation import check_documentation
 from devaid.diagnostics.environment import check_environment
 from devaid.diagnostics.health import health_check
+from devaid.diagnostics.security import check_security
 
 app = typer.Typer(
     name="devaid",
@@ -43,6 +44,7 @@ app.command(name="config")(check_config)
 app.command(name="env")(check_environment)
 app.command(name="api")(inspect_api)
 app.command(name="docs")(check_documentation)
+app.command(name="security")(check_security)
 
 if __name__ == "__main__":
     app()
