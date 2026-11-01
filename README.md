@@ -21,7 +21,7 @@
 
 The project is being designed around practical diagnostics rather than requiring every task to go through an AI chatbot. Core tools should work locally wherever possible, with AI treated as an optional enhancement—not a requirement.
 
-> **Project status:** The Python CLI is actively being built, with offline diagnostics and automated tests. The web platform is still planned. See the implemented commands below for what works today.
+> **Project status:** The Python CLI is actively being built, with offline diagnostics and automated tests. The web platform is a static browser-tools MVP. See the implemented commands and tools below.
 
 ## Our goals
 
@@ -84,13 +84,14 @@ uv run ruff check .
 uv run pytest
 ```
 
-### Web platform and documentation
+### Web tools
 
-A static browser-tools MVP is available in `web/` with a JSON Inspector, Regex Tester, and URL Encoder / Decoder. These tools run entirely in the browser tab; no input is uploaded. The browser MVP does not execute the Python CLI or inspect local project folders.
+The static browser-tools MVP in `web/` includes a JSON Inspector, Regex Tester, URL Encoder / Decoder, and line-based Text Diff. The tools process input in the browser tab; no project files are uploaded and no backend is required. Text Diff uses a bounded local comparison to keep memory use predictable.
 
 - Open browser tools from the repository's `web/` directory.
 - Read the static documentation in `docs/`.
 - Both can be hosted as static files without a paid backend or database.
+- The browser MVP does not execute the Python CLI or inspect local project folders.
 
 ## Technology direction
 
@@ -145,10 +146,12 @@ The project is being developed incrementally:
 - [x] Add a static browser-tools MVP (JSON Inspector and Regex Tester).
 - [x] Add a static documentation landing page.
 - [x] Add package-manager, Python, and JavaScript diagnostics plus Markdown/JSON report export.
+- [x] Add browser-native URL encoding and decoding.
+- [x] Add a local line-based Text Diff tool.
 - [ ] Expand language and package-manager coverage based on real-world feedback.
-- [ ] Add richer browser-native tools and contributor examples.
+- [ ] Add more browser-native tools and contributor examples.
 
-Features will be marked complete only when they are implemented, documented, and tested. The web platform remains planned and is not currently presented as an available product.
+Features will be marked complete only when they are implemented, documented, and tested. The web tools are static browser utilities; the full web platform remains a future direction.
 
 ## Contributing
 
