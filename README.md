@@ -57,6 +57,7 @@ The following commands are implemented in the Python CLI. Most diagnostics are r
 | `devaid docs PATH` | Check documentation file and section completeness. |
 | `devaid security PATH` | Scan local project files for common secret and security hygiene issues. |
 | `devaid workflow-doctor PATH` | Review GitHub Actions permissions, action pinning, and checkout credential settings. |
+| `devaid docker-doctor PATH` | Review Dockerfiles and Compose files for common security and reliability issues. |
 
 Run `devaid --help` or `devaid COMMAND --help` for command-specific options. Commands that accept a project path generally use the current directory when you pass `.`.
 
@@ -131,6 +132,7 @@ The project is being developed incrementally:
 - [x] Add deployment, security, Git, release, test-readiness, and performance diagnostics.
 - [x] Add HTML accessibility hygiene checks.
 - [x] Add GitHub Actions workflow hygiene checks.
+- [x] Add Dockerfile and Docker Compose hygiene checks.
 - [ ] Expand CLI language and framework coverage based on real-world feedback.
 - [ ] Improve documentation and publish a useful project website.
 - [ ] Add more robust tests, examples, and contributor-friendly workflows.
