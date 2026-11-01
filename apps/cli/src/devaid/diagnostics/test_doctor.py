@@ -10,9 +10,6 @@ from rich.table import Table
 
 console = Console()
 
-TEST_FILE_PATTERNS = ("test_*.py", "*_test.py", "*.test.js", "*.test.jsx",
-                      "*.test.ts", "*.test.tsx", "*.spec.js", "*.spec.ts",
-                      "*_test.go")
 TEST_DIRECTORIES = ("tests", "test", "__tests__")
 
 
@@ -38,7 +35,7 @@ def _has_javascript_tests(path: Path) -> bool:
             if any(directory.rglob(pattern)):
                 return True
     return any(
-        path.glob(pattern)
+        any(path.glob(pattern))
         for pattern in ("*.test.js", "*.test.ts", "*.spec.js", "*.spec.ts")
     )
 
