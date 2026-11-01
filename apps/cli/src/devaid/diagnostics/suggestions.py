@@ -14,20 +14,32 @@ def collect_suggestions(path: Path) -> list[tuple[str, str, str]]:
 
     if not (path / "README.md").is_file():
         suggestions.append(
-            ("HIGH", "Add a README", "Create README.md with setup, usage, and project details.")
+            (
+                "HIGH",
+                "Add a README",
+                "Create README.md with setup, usage, and project details.",
+            )
         )
 
     has_tests = any((path / name).is_dir() for name in ("tests", "test"))
     has_root_tests = any(path.glob("test_*.py")) or any(path.glob("*_test.py"))
     if not has_tests and not has_root_tests:
         suggestions.append(
-            ("HIGH", "Add automated tests", "Create a tests/ directory and add tests for core behavior.")
+            (
+                "HIGH",
+                "Add automated tests",
+                "Create a tests/ directory and add tests for core behavior.",
+            )
         )
 
     gitignore = path / ".gitignore"
     if not gitignore.is_file():
         suggestions.append(
-            ("HIGH", "Add a .gitignore", "Ignore virtual environments, build output, caches, and local secrets.")
+            (
+                "HIGH",
+                "Add a .gitignore",
+                "Ignore virtual environments, build output, caches, and local secrets.",
+            )
         )
     else:
         try:
@@ -47,7 +59,11 @@ def collect_suggestions(path: Path) -> list[tuple[str, str, str]]:
                     suggestions.append(("MEDIUM", "Review .gitignore", advice))
         except (OSError, UnicodeError):
             suggestions.append(
-                ("MEDIUM", "Check .gitignore encoding", "Make .gitignore readable as UTF-8.")
+                (
+                    "MEDIUM",
+                    "Check .gitignore encoding",
+                    "Make .gitignore readable as UTF-8.",
+                )
             )
 
     workflows = path / ".github" / "workflows"
@@ -55,14 +71,22 @@ def collect_suggestions(path: Path) -> list[tuple[str, str, str]]:
         any(workflows.glob("*.yml")) or any(workflows.glob("*.yaml"))
     ):
         suggestions.append(
-            ("MEDIUM", "Add continuous integration", "Run linting and automated tests on every pull request.")
+            (
+                "MEDIUM",
+                "Add continuous integration",
+                "Run linting and automated tests on every pull request.",
+            )
         )
 
     if not (path / "CONTRIBUTING.md").is_file() and not (
         path / "docs" / "CONTRIBUTING.md"
     ).is_file():
         suggestions.append(
-            ("LOW", "Add contribution guidance", "Explain how contributors can set up, test, and submit changes.")
+            (
+                "LOW",
+                "Add contribution guidance",
+                "Explain how contributors can set up, test, and submit changes.",
+            )
         )
 
     return suggestions
@@ -86,12 +110,11 @@ def show_suggestions(path: Path) -> None:
 
     console.print(table)
     if findings:
-        console.print(
-            f"\n[bold]{len(findings)} recommendation(s)[/bold] to review. "
-            "DevAid suggests changes but never applies them automatically."
-        )
+        console.print(f"\n[bold]{len(findings)} recommendation(s)[/bold] to review.")
     else:
         console.print("[bold green]No recommendations from the current rule set.[/bold green]")
+
+    console.print("DevAid suggests changes but never applies them automatically.")
     console.print(
         "[dim]Offline, rule-based guidance based on project structure. "
         "Recommendations are not a complete code or security review.[/dim]"
