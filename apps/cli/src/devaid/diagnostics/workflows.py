@@ -10,7 +10,7 @@ from rich.table import Table
 
 console = Console(width=140)
 WORKFLOW_DIR = Path(".github/workflows")
-ACTION_PATTERN = re.compile(r"^\s*uses:\s*([^\s#]+)", re.MULTILINE)
+ACTION_PATTERN = re.compile(r"^\s*(?:-\s*)?uses:\s*([^\s#]+)", re.MULTILINE)
 SHA_PATTERN = re.compile(r"@[0-9a-fA-F]{40}$")
 
 
