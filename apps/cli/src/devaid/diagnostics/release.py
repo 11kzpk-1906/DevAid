@@ -78,7 +78,11 @@ def inspect_release(path: Path) -> list[tuple[str, str, str]]:
             )
 
     license_file = next(
-        (path / name for name in ("LICENSE", "LICENSE.md", "LICENSE.txt") if (path / name).is_file()),
+        (
+            path / name
+            for name in ("LICENSE", "LICENSE.md", "LICENSE.txt")
+            if (path / name).is_file()
+        ),
         None,
     )
     findings.append(
