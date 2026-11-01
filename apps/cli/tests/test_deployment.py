@@ -11,7 +11,8 @@ runner = CliRunner()
 def test_deployment_checks_supported_files(tmp_path: Path) -> None:
     (tmp_path / "vercel.json").write_text('{"version": 2}', encoding="utf-8")
     (tmp_path / "netlify.toml").write_text('[build]\ncommand = "npm run build"\n', encoding="utf-8")
-    (tmp_path / "Dockerfile").write_text("FROM python:3.12\nCMD [\"python\", \"app.py\"]\n", encoding="utf-8")
+    dockerfile = "FROM python:3.12\nCMD [\"python\", \"app.py\"]\n"
+    (tmp_path / "Dockerfile").write_text(dockerfile, encoding="utf-8")
     (tmp_path / "Procfile").write_text("web: python app.py\n", encoding="utf-8")
 
     result = runner.invoke(app, ["deploy", str(tmp_path)])
