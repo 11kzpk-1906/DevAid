@@ -1,5 +1,6 @@
 """Offline security hygiene checks for local project files."""
 
+import os
 import re
 from pathlib import Path
 
@@ -87,7 +88,7 @@ def _scan_file(file_path: Path, root: Path) -> list[tuple[str, str, int, str]]:
     return findings
 
 
-def check_security(path: Path = Path(".")) -> None:
+def check_security(path: Path) -> None:
     """Check a local project for common secret-exposure risks."""
     if not path.exists() or not path.is_dir():
         console.print("[bold red]Error:[/bold red] Invalid project directory.")
@@ -95,20 +96,6 @@ def check_security(path: Path = Path(".")) -> None:
 
     root = path.resolve()
     findings: list[tuple[str, str, int, str]] = []
-    env_files = [
-        item
-        for item in root.rglob(".env")
-        if item.is_file() and not _is_ignored_directory(item.relative_to(root).parent)
-    ]
-    for env_file in env_files:
-        findings.append(
-            (
-                "ERROR",
-                str(env_file.relative_to(root)),
-                0,
-                "Environment file exists; keep it out of version control",
-            )
-        )
 
     gitignore = root / ".gitignore"
     try:
@@ -135,20 +122,33 @@ def check_security(path: Path = Path(".")) -> None:
     )
 
     scanned = 0
-    for file_path in root.rglob("*"):
-        if not file_path.is_file() or _is_ignored_directory(file_path.relative_to(root).parent):
-            continue
-        if file_path.name in {".env", ".env.example", ".env.template"}:
-            continue
-        if file_path.suffix.lower() not in TEXT_SUFFIXES:
-            continue
-        scanned += 1
+    for current, directories, filenames in os.walk(root):
+        directories[:] = [name for name in directories if name not in SKIP_DIRS]
+        for filename in filenames:
+            file_path = Path(current) / filename
+            if filename == ".env":
+                findings.append(
+                    (
+                        "ERROR",
+                        str(file_path.relative_to(root)),
+                        0,
+                        "Environment file exists; keep it out of version control",
+                    )
+                )
+                continue
+            if filename in {".env.example", ".env.template"}:
+                continue
+            if file_path.suffix.lower() not in TEXT_SUFFIXES:
+                continue
+            scanned += 1
+            if scanned > MAX_FILES:
+                findings.append(
+                    ("INFO", "Project scan", 0, f"Stopped after {MAX_FILES} files")
+                )
+                break
+            findings.extend(_scan_file(file_path, root))
         if scanned > MAX_FILES:
-            findings.append(
-                ("INFO", "Project scan", 0, f"Stopped after {MAX_FILES} files")
-            )
             break
-        findings.extend(_scan_file(file_path, root))
 
     table = Table(title=f"DevAid Security Doctor — {root.name}")
     table.add_column("Status")
