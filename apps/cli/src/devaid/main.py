@@ -6,9 +6,9 @@ from rich.console import Console
 from devaid import __version__
 from devaid.analyzers.project import analyze_project
 from devaid.commands.explain import explain
+from devaid.diagnostics.config import check_config
 from devaid.diagnostics.dependencies import check_dependencies
 from devaid.diagnostics.health import health_check
-from devaid.diagnostics.config import check_config
 
 app = typer.Typer(
     name="devaid",
