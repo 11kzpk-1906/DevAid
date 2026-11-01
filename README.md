@@ -58,6 +58,10 @@ The following commands are implemented in the Python CLI. Most diagnostics are r
 | `devaid security PATH` | Scan local project files for common secret and security hygiene issues. |
 | `devaid workflow-doctor PATH` | Review GitHub Actions permissions, action pinning, and checkout credential settings. |
 | `devaid docker-doctor PATH` | Review Dockerfiles and Compose files for common security and reliability issues. |
+| `devaid package-doctor PATH` | Check Python and Node.js manifests and lockfile consistency. |
+| `devaid python-doctor PATH` | Review Python project structure and requirements hygiene. |
+| `devaid javascript-doctor PATH` | Review Node.js metadata and project hygiene. |
+| `devaid report PATH` | Export supported findings as Markdown or JSON. |
 
 Run `devaid --help` or `devaid COMMAND --help` for command-specific options. Commands that accept a project path generally use the current directory when you pass `.`.
 
@@ -80,9 +84,13 @@ uv run ruff check .
 uv run pytest
 ```
 
-### Website
+### Web platform and documentation
 
-The web platform is planned. The current focus is making the local CLI diagnostics reliable, documented, and useful before expanding to the website.
+A static browser-tools MVP is available in `web/` with a JSON Inspector and Regex Tester. These tools run entirely in the browser tab; no input is uploaded. The browser MVP does not execute the Python CLI or inspect local project folders.
+
+- Open browser tools from the repository's `web/` directory.
+- Read the static documentation in `docs/`.
+- Both can be hosted as static files without a paid backend or database.
 
 ## Technology direction
 
@@ -134,8 +142,11 @@ The project is being developed incrementally:
 - [x] Add GitHub Actions workflow hygiene checks.
 - [x] Add Dockerfile and Docker Compose hygiene checks.
 - [ ] Expand CLI language and framework coverage based on real-world feedback.
-- [ ] Improve documentation and publish a useful project website.
-- [ ] Add more robust tests, examples, and contributor-friendly workflows.
+- [x] Add a static browser-tools MVP (JSON Inspector and Regex Tester).
+- [x] Add a static documentation landing page.
+- [x] Add package-manager, Python, and JavaScript diagnostics plus Markdown/JSON report export.
+- [ ] Expand language and package-manager coverage based on real-world feedback.
+- [ ] Add richer browser-native tools and contributor examples.
 
 Features will be marked complete only when they are implemented, documented, and tested. The web platform remains planned and is not currently presented as an available product.
 

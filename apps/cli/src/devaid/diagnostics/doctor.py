@@ -15,7 +15,10 @@ from devaid.diagnostics.documentation import check_documentation
 from devaid.diagnostics.environment import check_environment
 from devaid.diagnostics.git import git_doctor
 from devaid.diagnostics.health import health_check
+from devaid.diagnostics.javascript import javascript_doctor
+from devaid.diagnostics.package_manager import package_doctor
 from devaid.diagnostics.performance import performance_doctor
+from devaid.diagnostics.python_project import python_doctor
 from devaid.diagnostics.release import release_doctor
 from devaid.diagnostics.security import check_security
 from devaid.diagnostics.suggestions import show_suggestions
@@ -52,6 +55,9 @@ def run_doctor(path: Path) -> None:
         ("Accessibility hygiene", lambda: accessibility_doctor(root)),
         ("GitHub Actions workflows", lambda: workflow_doctor(root)),
         ("Docker configuration", lambda: docker_doctor(root)),
+        ("Package manager consistency", lambda: package_doctor(root)),
+        ("Python project conventions", lambda: python_doctor(root)),
+        ("JavaScript project conventions", lambda: javascript_doctor(root)),
         ("Environment", check_environment),
     )
 

@@ -17,8 +17,12 @@ from devaid.diagnostics.documentation import check_documentation
 from devaid.diagnostics.environment import check_environment
 from devaid.diagnostics.git import git_doctor
 from devaid.diagnostics.health import health_check
+from devaid.diagnostics.javascript import javascript_doctor
+from devaid.diagnostics.package_manager import package_doctor
 from devaid.diagnostics.performance import performance_doctor
+from devaid.diagnostics.python_project import python_doctor
 from devaid.diagnostics.release import release_doctor
+from devaid.diagnostics.reports import report
 from devaid.diagnostics.security import check_security
 from devaid.diagnostics.suggestions import show_suggestions
 from devaid.diagnostics.test_doctor import test_doctor
@@ -63,6 +67,10 @@ app.command(name="docs")(check_documentation)
 app.command(name="security")(check_security)
 app.command(name="workflow-doctor")(workflow_doctor)
 app.command(name="docker-doctor")(docker_doctor)
+app.command(name="package-doctor")(package_doctor)
+app.command(name="python-doctor")(python_doctor)
+app.command(name="javascript-doctor")(javascript_doctor)
+app.command(name="report")(report)
 
 if __name__ == "__main__":
     app()

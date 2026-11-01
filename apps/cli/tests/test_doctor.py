@@ -45,9 +45,12 @@ def test_full_doctor_runs_all_local_checks(tmp_path: Path) -> None:
     assert "Accessibility Doctor" in result.output
     assert "Workflow Doctor" in result.output
     assert "Docker Doctor" in result.output
+    assert "Package Manager Doctor" in result.output
+    assert "Python Doctor" in result.output
+    assert "JavaScript Doctor" in result.output
     assert "Full Doctor complete" in result.output
     assert "Final summary:" in result.output
-    assert "14/14 diagnostic reports completed" in " ".join(result.output.split())
+    assert "17/17 diagnostic reports completed" in " ".join(result.output.split())
 
 
 def test_full_doctor_rejects_invalid_directory(tmp_path: Path) -> None:
