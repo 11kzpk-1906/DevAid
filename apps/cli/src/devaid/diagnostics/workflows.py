@@ -115,6 +115,10 @@ def workflow_doctor(path: Path) -> None:
         )
     )
     console.print(
+        f"Summary: {len(workflows)} workflow files checked; {passed} passed; "
+        f"{review} items to review"
+    )
+    console.print(
         "[dim]Local, read-only heuristic checks. Review each recommendation against "
         "your workflow's needs; no files are changed and nothing is uploaded.[/dim]"
     )
