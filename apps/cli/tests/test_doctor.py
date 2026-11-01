@@ -31,6 +31,7 @@ def test_full_doctor_runs_all_local_checks(tmp_path: Path) -> None:
     assert "Security Doctor" in result.output
     assert "Environment Doctor" in result.output
     assert "Git Doctor" in result.output
+    assert "Release Doctor" in result.output
     assert "Full Doctor complete" in result.output
 
 
