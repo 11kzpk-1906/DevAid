@@ -73,7 +73,7 @@ def test_test_doctor_command_is_read_only(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    result = runner.invoke(app, ["test", str(tmp_path)])
+    result = runner.invoke(app, ["test-doctor", str(tmp_path)])
 
     assert result.exit_code == 0
     assert "DevAid Test Doctor" in result.output
@@ -81,7 +81,7 @@ def test_test_doctor_command_is_read_only(tmp_path: Path) -> None:
 
 
 def test_test_doctor_rejects_invalid_directory(tmp_path: Path) -> None:
-    result = runner.invoke(app, ["test", str(tmp_path / "missing")])
+    result = runner.invoke(app, ["test-doctor", str(tmp_path / "missing")])
 
     assert result.exit_code == 1
     assert "Invalid project directory" in result.output
