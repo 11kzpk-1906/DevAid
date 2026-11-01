@@ -11,6 +11,7 @@ from devaid.diagnostics.dependencies import check_dependencies
 from devaid.diagnostics.deployment import check_deployment
 from devaid.diagnostics.documentation import check_documentation
 from devaid.diagnostics.environment import check_environment
+from devaid.diagnostics.git import git_doctor
 from devaid.diagnostics.health import health_check
 from devaid.diagnostics.security import check_security
 from devaid.diagnostics.suggestions import show_suggestions
@@ -40,6 +41,7 @@ def run_doctor(path: Path) -> None:
         ("Documentation", lambda: check_documentation(root)),
         ("Security hygiene", lambda: check_security(root)),
         ("Test readiness", lambda: test_doctor(root)),
+        ("Git repository", lambda: git_doctor(root)),
         ("Environment", check_environment),
     )
 
