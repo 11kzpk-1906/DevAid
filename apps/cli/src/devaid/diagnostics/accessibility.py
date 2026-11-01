@@ -124,7 +124,11 @@ def inspect_accessibility(path: Path) -> list[tuple[str, str, str]]:
 
     if not html_files:
         findings.append(
-            ("HTML coverage", "INFO", "No HTML files found; JSX and template files are not parsed")
+            (
+                "HTML coverage",
+                "INFO",
+                "No HTML files found; JSX and template files are not parsed",
+            )
         )
         findings.append(("Accessibility scan", "INFO", "No HTML documents were available to inspect"))
     else:
