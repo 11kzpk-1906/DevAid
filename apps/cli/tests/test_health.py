@@ -27,7 +27,8 @@ def test_health_reports_project_checks(tmp_path: Path) -> None:
     assert "Project Health" in result.output
     assert "100/100" in result.output
     assert "6/6 checks passed" in result.output
-    assert "not a security audit" in result.output
+    normalized_output = " ".join(result.output.split())
+    assert "not a security audit" in normalized_output
 
 
 def test_health_flags_missing_project_basics(tmp_path: Path) -> None:
