@@ -81,7 +81,7 @@ def workflow_doctor(path: Path) -> None:
             )
 
         if "actions/checkout@" in content and not re.search(
-            r"^\s* persist-credentials:\s*false\s*$",
+            r"^\s*persist-credentials:\s*false\s*$",
             content,
             re.MULTILINE,
         ):
