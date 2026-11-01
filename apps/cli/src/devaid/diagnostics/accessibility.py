@@ -130,7 +130,13 @@ def inspect_accessibility(path: Path) -> list[tuple[str, str, str]]:
                 "No HTML files found; JSX and template files are not parsed",
             )
         )
-        findings.append(("Accessibility scan", "INFO", "No HTML documents were available to inspect"))
+        findings.append(
+            (
+                "Accessibility scan",
+                "INFO",
+                "No HTML documents were available to inspect",
+            )
+        )
     else:
         totals = {
             "images": 0,
