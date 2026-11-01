@@ -86,7 +86,7 @@ uv run pytest
 
 ### Web tools
 
-The static browser-tools MVP in `web/` includes a JSON Inspector, Regex Tester, URL Encoder / Decoder, line-based Text Diff, and a YAML Validator. The tools process input in the browser tab; no project files are uploaded and no backend is required. Text Diff uses a bounded local comparison to keep memory use predictable. YAML parsing uses the open-source js-yaml parser loaded from jsDelivr; the YAML text itself is parsed in the browser and is not uploaded. An internet connection is required to load the parser.
+The static browser-tools MVP in `web/` includes a JSON Inspector, Regex Tester, URL Encoder / Decoder, line-based Text Diff, and a YAML Validator. The tools process input in the browser tab; no project files are uploaded and no backend is required. Text Diff uses a bounded local comparison to keep memory use predictable. YAML parsing uses the open-source js-yaml parser loaded from jsDelivr; the YAML text itself is parsed in the browser and is not uploaded. An internet connection is required to load the parser. YAML parsing uses the open-source js-yaml parser loaded from jsDelivr; the YAML text itself is parsed in the browser and is not uploaded. An internet connection is required to load the parser.
 
 - Open browser tools from the repository's `web/` directory.
 - Read the static documentation in `docs/`.
