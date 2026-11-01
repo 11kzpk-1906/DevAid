@@ -30,7 +30,7 @@ def test_docs_reports_complete_documentation(tmp_path: Path) -> None:
     assert result.exit_code == 0
     assert "Documentation Doctor" in result.output
     assert "100/100" in result.output
-    assert "10/10 checks passed" in result.output
+    assert "11/11 checks passed" in result.output
     assert "does not judge writing quality" in " ".join(result.output.split())
 
 
