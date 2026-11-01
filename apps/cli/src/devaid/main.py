@@ -6,6 +6,7 @@ from rich.console import Console
 from devaid import __version__
 from devaid.analyzers.project import analyze_project
 from devaid.commands.explain import explain
+from devaid.diagnostics.api import inspect_api
 from devaid.diagnostics.config import check_config
 from devaid.diagnostics.dependencies import check_dependencies
 from devaid.diagnostics.environment import check_environment
@@ -37,6 +38,7 @@ app.command(name="deps")(check_dependencies)
 app.command(name="health")(health_check)
 app.command(name="config")(check_config)
 app.command(name="env")(check_environment)
+app.command(name="api")(inspect_api)
 
 if __name__ == "__main__":
     app()
