@@ -19,6 +19,7 @@ from devaid.diagnostics.release import release_doctor
 from devaid.diagnostics.security import check_security
 from devaid.diagnostics.suggestions import show_suggestions
 from devaid.diagnostics.test_doctor import test_doctor
+from devaid.diagnostics.workflows import workflow_doctor
 
 console = Console()
 
@@ -48,6 +49,7 @@ def run_doctor(path: Path) -> None:
         ("Release readiness", lambda: release_doctor(root)),
         ("Performance hygiene", lambda: performance_doctor(root)),
         ("Accessibility hygiene", lambda: accessibility_doctor(root)),
+        ("GitHub Actions workflows", lambda: workflow_doctor(root)),
         ("Environment", check_environment),
     )
 
