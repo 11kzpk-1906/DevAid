@@ -29,7 +29,7 @@ def test_docker_doctor_reports_common_dockerfile_and_compose_issues(
     assert "USER" in result.output
     assert "HEALTHCHECK" in result.output
     assert "privileged: true" in result.output
-    assert "latest image tag" in result.output
+    assert "mutable latest tag" in result.output
     assert "inline secret assignment" in result.output
     assert "apt-get update" in result.output
     assert "items to review" in result.output
