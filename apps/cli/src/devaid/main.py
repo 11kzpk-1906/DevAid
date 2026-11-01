@@ -10,8 +10,8 @@ from devaid.diagnostics.accessibility import accessibility_doctor
 from devaid.diagnostics.api import inspect_api
 from devaid.diagnostics.config import check_config
 from devaid.diagnostics.dependencies import check_dependencies
-from devaid.diagnostics.docker import docker_doctor
 from devaid.diagnostics.deployment import check_deployment
+from devaid.diagnostics.docker import docker_doctor
 from devaid.diagnostics.doctor import run_doctor
 from devaid.diagnostics.documentation import check_documentation
 from devaid.diagnostics.environment import check_environment
