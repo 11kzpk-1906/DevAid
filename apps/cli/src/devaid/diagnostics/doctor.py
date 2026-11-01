@@ -6,6 +6,7 @@ import typer
 from rich.console import Console
 from rich.rule import Rule
 
+from devaid.diagnostics.accessibility import accessibility_doctor
 from devaid.diagnostics.config import check_config
 from devaid.diagnostics.dependencies import check_dependencies
 from devaid.diagnostics.deployment import check_deployment
@@ -46,6 +47,7 @@ def run_doctor(path: Path) -> None:
         ("Git repository", lambda: git_doctor(root)),
         ("Release readiness", lambda: release_doctor(root)),
         ("Performance hygiene", lambda: performance_doctor(root)),
+        ("Accessibility hygiene", lambda: accessibility_doctor(root)),
         ("Environment", check_environment),
     )
 
