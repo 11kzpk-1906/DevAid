@@ -6,6 +6,7 @@ from rich.console import Console
 from devaid import __version__
 from devaid.analyzers.project import analyze_project
 from devaid.commands.explain import explain
+from devaid.diagnostics.dependencies import check_dependencies
 
 app = typer.Typer(
     name="devaid",
@@ -29,8 +30,7 @@ def version() -> None:
 
 app.command(name="explain")(explain)
 app.command(name="analyze")(analyze_project)
-
-
+app.command(name="deps")(check_dependencies)
 
 if __name__ == "__main__":
     app()
