@@ -6,6 +6,7 @@ from rich.console import Console
 from devaid import __version__
 from devaid.analyzers.project import analyze_project
 from devaid.commands.explain import explain
+from devaid.diagnostics.accessibility import accessibility_doctor
 from devaid.diagnostics.api import inspect_api
 from devaid.diagnostics.config import check_config
 from devaid.diagnostics.dependencies import check_dependencies
@@ -50,6 +51,7 @@ app.command(name="test-doctor")(test_doctor)
 app.command(name="git")(git_doctor)
 app.command(name="release")(release_doctor)
 app.command(name="performance")(performance_doctor)
+app.command(name="accessibility")(accessibility_doctor)
 app.command(name="deploy")(check_deployment)
 app.command(name="health")(health_check)
 app.command(name="config")(check_config)
