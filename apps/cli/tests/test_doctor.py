@@ -14,6 +14,10 @@ def test_full_doctor_runs_all_local_checks(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     (tmp_path / ".gitignore").write_text(".env\n.env.*\n", encoding="utf-8")
+    (tmp_path / "Dockerfile").write_text(
+        "FROM python:3.12-slim\nUSER app\nHEALTHCHECK CMD true\n",
+        encoding="utf-8",
+    )
     workflow_dir = tmp_path / ".github" / "workflows"
     workflow_dir.mkdir(parents=True)
     (workflow_dir / "ci.yml").write_text(
@@ -40,9 +44,10 @@ def test_full_doctor_runs_all_local_checks(tmp_path: Path) -> None:
     assert "Performance Doctor" in result.output
     assert "Accessibility Doctor" in result.output
     assert "Workflow Doctor" in result.output
+    assert "Docker Doctor" in result.output
     assert "Full Doctor complete" in result.output
     assert "Final summary:" in result.output
-    assert "13/13 diagnostic reports completed" in " ".join(result.output.split())
+    assert "14/14 diagnostic reports completed" in " ".join(result.output.split())
 
 
 def test_full_doctor_rejects_invalid_directory(tmp_path: Path) -> None:
