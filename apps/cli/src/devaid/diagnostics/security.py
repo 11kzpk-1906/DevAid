@@ -81,7 +81,7 @@ def _scan_file(file_path: Path, root: Path) -> list[tuple[str, str, int, str]]:
                     "ERROR",
                     str(file_path.relative_to(root)),
                     line_number,
-                    f"Possible {label.lower()} detected; value redacted",
+                    f"Possible {label} detected; value redacted",
                 )
             )
             break
