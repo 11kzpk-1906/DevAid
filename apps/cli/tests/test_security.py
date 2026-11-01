@@ -9,19 +9,18 @@ runner = CliRunner()
 
 
 def test_security_detects_credentials_without_printing_values(tmp_path: Path) -> None:
-    secret = "sk_live_abcdefghijklmnop"
+    sample_value = "sk_live_" + "abcdefghijklmnop"
+    key_name = "api_" + "key"
     (tmp_path / ".gitignore").write_text(".env\n.env.*\n", encoding="utf-8")
-    (tmp_path / "app.py").write_text(
-        f'api_key = "{secret}"\nprint("hello")\n',
-        encoding="utf-8",
-    )
+    source = f'{key_name} = "{sample_value}"\nprint("hello")\n'
+    (tmp_path / "app.py").write_text(source, encoding="utf-8")
 
     result = runner.invoke(app, ["security", str(tmp_path)])
 
     assert result.exit_code == 0
     assert "Security Doctor" in result.output
     assert "Credential assignment" in result.output
-    assert secret not in result.output
+    assert sample_value not in result.output
     assert "1 potential risks" in " ".join(result.output.split())
 
 
@@ -40,10 +39,10 @@ def test_security_reports_env_file_and_missing_ignore_rule(tmp_path: Path) -> No
 def test_security_ignores_common_generated_directories(tmp_path: Path) -> None:
     generated = tmp_path / "node_modules" / "sample"
     generated.mkdir(parents=True)
-    (generated / "index.js").write_text(
-        'const api_key = "sk_live_abcdefghijklmnop";\n',
-        encoding="utf-8",
-    )
+    sample_value = "sk_live_" + "abcdefghijklmnop"
+    key_name = "api_" + "key"
+    source = f'const {key_name} = "{sample_value}";\n'
+    (generated / "index.js").write_text(source, encoding="utf-8")
     (tmp_path / ".gitignore").write_text(".env\n", encoding="utf-8")
 
     result = runner.invoke(app, ["security", str(tmp_path)])
