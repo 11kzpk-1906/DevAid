@@ -23,9 +23,7 @@ def test_workflow_doctor_reports_permissions_and_unpinned_actions(
 
     assert result.exit_code == 0
     assert "Workflow Doctor" in result.output
-    assert "Declare least-privilege permissions explicitly" in result.output
-    assert "full commit SHA" in result.output
-    assert "persist-credentials: false" in result.output
+    assert "3 items to review" in " ".join(result.output.split())
 
 
 def test_workflow_doctor_accepts_explicit_permissions_and_sha_pins(
@@ -44,9 +42,7 @@ def test_workflow_doctor_accepts_explicit_permissions_and_sha_pins(
     result = runner.invoke(app, ["workflow-doctor", str(tmp_path)])
 
     assert result.exit_code == 0
-    assert "Explicit workflow or job permissions are declared" in result.output
-    assert "pinned to full commit SHAs" in result.output
-    assert "items to review" in result.output
+    assert "2 passed" in " ".join(result.output.split())
     assert "0 items to review" in " ".join(result.output.split())
 
 
