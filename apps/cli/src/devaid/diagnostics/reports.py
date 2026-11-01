@@ -21,9 +21,13 @@ def _items(category: str, findings: list[tuple[str, str, str]]) -> list[dict[str
 
 
 def report(
-    path: Path = typer.Argument(Path("."), help="Project directory to inspect."),
-    output_format: Annotated[str, typer.Option("--format", help="Report format: markdown or json.")] = "markdown",
-    output: Annotated[Path | None, typer.Option("--output", help="Optional output file path.")] = None,
+    path: Annotated[Path, typer.Argument(help="Project directory to inspect.")] = Path("."),
+    output_format: Annotated[
+        str, typer.Option("--format", help="Report format: markdown or json.")
+    ] = "markdown",
+    output: Annotated[
+        Path | None, typer.Option("--output", help="Optional output file path.")
+    ] = None,
 ) -> None:
     """Export package, Python, and JavaScript findings to a file or stdout."""
     root = path.resolve()
