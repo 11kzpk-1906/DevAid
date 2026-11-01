@@ -16,6 +16,7 @@ from devaid.diagnostics.environment import check_environment
 from devaid.diagnostics.health import health_check
 from devaid.diagnostics.security import check_security
 from devaid.diagnostics.suggestions import show_suggestions
+from devaid.diagnostics.test_doctor import test_doctor
 
 app = typer.Typer(
     name="devaid",
@@ -42,6 +43,7 @@ app.command(name="analyze")(analyze_project)
 app.command(name="deps")(check_dependencies)
 app.command(name="doctor")(run_doctor)
 app.command(name="suggest")(show_suggestions)
+app.command(name="test")(test_doctor)
 app.command(name="deploy")(check_deployment)
 app.command(name="health")(health_check)
 app.command(name="config")(check_config)
