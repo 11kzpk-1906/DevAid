@@ -10,6 +10,7 @@ from devaid.diagnostics.accessibility import accessibility_doctor
 from devaid.diagnostics.api import inspect_api
 from devaid.diagnostics.config import check_config
 from devaid.diagnostics.dependencies import check_dependencies
+from devaid.diagnostics.docker import docker_doctor
 from devaid.diagnostics.deployment import check_deployment
 from devaid.diagnostics.doctor import run_doctor
 from devaid.diagnostics.documentation import check_documentation
@@ -61,6 +62,7 @@ app.command(name="api")(inspect_api)
 app.command(name="docs")(check_documentation)
 app.command(name="security")(check_security)
 app.command(name="workflow-doctor")(workflow_doctor)
+app.command(name="docker-doctor")(docker_doctor)
 
 if __name__ == "__main__":
     app()
