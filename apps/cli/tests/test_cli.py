@@ -1,6 +1,5 @@
+from devaid.main import app
 from typer.testing import CliRunner
-
-from deveid.main import app
 
 runner = CliRunner()
 
@@ -15,3 +14,5 @@ def test_help_command() -> None:
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
     assert "developer" in result.output.lower()
+
+

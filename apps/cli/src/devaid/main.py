@@ -20,10 +20,12 @@ def main() -> None:
 @app.command()
 def version() -> None:
     """Display the DevAid version."""
-    from deveid import __version__
+    from devaid import __version__
 
     console.print(f"[bold cyan]DevAid[/bold cyan] v{__version__}")
 
 
 if __name__ == "__main__":
     app()
+
+
