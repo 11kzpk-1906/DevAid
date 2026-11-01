@@ -9,6 +9,7 @@ from devaid.commands.explain import explain
 from devaid.diagnostics.api import inspect_api
 from devaid.diagnostics.config import check_config
 from devaid.diagnostics.dependencies import check_dependencies
+from devaid.diagnostics.deployment import check_deployment
 from devaid.diagnostics.documentation import check_documentation
 from devaid.diagnostics.environment import check_environment
 from devaid.diagnostics.health import health_check
@@ -36,6 +37,7 @@ def version() -> None:
 app.command(name="explain")(explain)
 app.command(name="analyze")(analyze_project)
 app.command(name="deps")(check_dependencies)
+app.command(name="deploy")(check_deployment)
 app.command(name="health")(health_check)
 app.command(name="config")(check_config)
 app.command(name="env")(check_environment)
