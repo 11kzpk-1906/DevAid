@@ -7,6 +7,7 @@ from devaid import __version__
 from devaid.analyzers.project import analyze_project
 from devaid.commands.explain import explain
 from devaid.diagnostics.dependencies import check_dependencies
+from devaid.diagnostics.health import health_check
 
 app = typer.Typer(
     name="devaid",
@@ -31,6 +32,7 @@ def version() -> None:
 app.command(name="explain")(explain)
 app.command(name="analyze")(analyze_project)
 app.command(name="deps")(check_dependencies)
+app.command(name="health")(health_check)
 
 if __name__ == "__main__":
     app()
