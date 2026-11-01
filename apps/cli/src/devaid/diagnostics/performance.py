@@ -32,7 +32,9 @@ def inspect_performance(path: Path) -> list[tuple[str, str, str]]:
         try:
             package = json.loads(package_json.read_text(encoding="utf-8"))
         except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-            findings.append(("Node build setup", "ERROR", "package.json is not valid readable JSON"))
+            findings.append(
+                ("Node build setup", "ERROR", "package.json is not valid readable JSON")
+            )
         else:
             scripts = package.get("scripts", {})
             if isinstance(scripts, dict) and any(
@@ -55,7 +57,9 @@ def inspect_performance(path: Path) -> list[tuple[str, str, str]]:
         if (path / "uv.lock").is_file() or (path / "poetry.lock").is_file() or (
             path / "Pipfile.lock"
         ).is_file():
-            findings.append(("Python dependency reproducibility", "PASS", "A Python lockfile was found"))
+            findings.append(
+                ("Python dependency reproducibility", "PASS", "A Python lockfile was found")
+            )
         else:
             findings.append(
                 ("Python dependency reproducibility", "INFO", "No supported Python lockfile found")
@@ -124,7 +128,8 @@ def inspect_performance(path: Path) -> list[tuple[str, str, str]]:
             (
                 "Large assets",
                 "REVIEW",
-                f"{len(large_assets)} asset file(s) exceed 25 MB; consider compression or external storage",
+                f"{len(large_assets)} asset file(s) exceed 25 MB; "
+                "consider compression or external storage",
             )
         )
     else:
