@@ -21,7 +21,7 @@
 
 The project is being designed around practical diagnostics rather than requiring every task to go through an AI chatbot. Core tools should work locally wherever possible, with AI treated as an optional enhancement—not a requirement.
 
-> **Project status:** DevAid is in its initial planning and development stage. The tools and commands listed below describe the intended roadmap; they are not claims of currently available functionality.
+> **Project status:** The Python CLI is actively being built, with offline diagnostics and automated tests. The web platform is still planned. See the implemented commands below for what works today.
 
 ## Our goals
 
@@ -32,51 +32,62 @@ The project is being designed around practical diagnostics rather than requiring
 - **Developer-friendly:** Support different experience levels, languages, and workflows.
 - **Open to everyone:** Welcome contributions, feedback, bug reports, and ideas.
 
-## Planned toolkit
+## Available CLI tools
 
-| Tool | Purpose |
+The following commands are implemented in the Python CLI. Most diagnostics are read-only and run locally.
+
+| Command | What it does |
 | --- | --- |
-| Error Explainer | Turn confusing error messages into clearer explanations and troubleshooting guidance. |
-| Project Analyzer | Inspect a project's structure, languages, frameworks, and common configuration issues. |
-| Dependency Doctor | Review dependencies and highlight outdated, incompatible, or potentially problematic packages. |
-| Deployment Doctor | Help investigate common build and deployment failures from logs supplied by the developer. |
-| Security Checker | Run checks for common security problems using established, reputable tooling. |
-| API Tester | Send HTTP requests and inspect responses. |
-| Documentation Generator | Help create useful project documentation from available project information. |
-| Environment Doctor | Identify common local development environment and configuration issues. |
+| `devaid version` | Display the installed DevAid version. |
+| `devaid explain` | Explain supported programming errors and suggest troubleshooting steps. |
+| `devaid analyze PATH` | Identify project languages, frameworks, and package managers. |
+| `devaid deps PATH` | Inspect dependency manifests offline. |
+| `devaid doctor PATH` | Run the complete set of local project diagnostics and prioritized suggestions. |
+| `devaid suggest PATH` | Recommend practical project setup improvements. |
+| `devaid test-doctor PATH` | Check test and CI readiness without running the test suite. |
+| `devaid git PATH` | Review Git repository state without changing it. |
+| `devaid release PATH` | Check release metadata and readiness. |
+| `devaid performance PATH` | Run static performance-hygiene checks. |
+| `devaid accessibility PATH` | Inspect HTML for common accessibility issues. |
+| `devaid deploy PATH` | Review common deployment configuration files offline. |
+| `devaid health PATH` | Generate a project health report. |
+| `devaid config PATH` | Check common configuration and ignore-file hygiene. |
+| `devaid env` | Report local development environment information. |
+| `devaid api URL` | Send a read-only HTTP GET and inspect the response. |
+| `devaid docs PATH` | Check documentation file and section completeness. |
+| `devaid security PATH` | Scan local project files for common secret and security hygiene issues. |
 
-The roadmap may change as we learn from developers and validate which problems matter most.
+Run `devaid --help` or `devaid COMMAND --help` for command-specific options. Commands that accept a project path generally use the current directory when you pass `.`.
 
-## Website + CLI
+### Install and run from source
 
-DevAid is planned as two connected experiences:
-
-### Web platform
-A clean, accessible home for DevAid tools, guides, documentation, and community resources. The initial site can be hosted as a static website to avoid requiring a paid backend.
-
-### Command-line interface
-A terminal-first companion designed to run diagnostics on a developer's machine. Example commands show the intended interface and are **illustrative only** until implemented:
+Requirements: Python 3.11 or newer and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-# Explain an error log
-devaid explain error.log
-
-# Inspect the current project
-devaid analyze .
-
-# Review project dependencies
-devaid deps
-
-# Run common security checks
-devaid security
+git clone https://github.com/11kzpk-1906/DevAid.git
+cd DevAid
+uv sync --extra dev
+uv run devaid --help
+uv run devaid doctor .
 ```
+
+For development checks:
+
+```bash
+uv run ruff check .
+uv run pytest
+```
+
+### Website
+
+The web platform is planned. The current focus is making the local CLI diagnostics reliable, documented, and useful before expanding to the website.
 
 ## Technology direction
 
-The initial implementation is expected to use:
+The current CLI implementation uses Python and Typer. The planned web platform is expected to use:
 
 - **Web:** React, TypeScript, and Tailwind CSS
-- **CLI:** Python and Typer
+- **CLI:** Python and Typer (implemented)
 - **Optional API:** Python and FastAPI, only where a hosted service is genuinely needed
 - **Local data:** Files and lightweight local storage where practical
 - **Testing:** Automated tests and CI checks
@@ -110,18 +121,19 @@ Please do not submit real credentials, access tokens, private keys, or confident
 
 ## Roadmap
 
-The roadmap is intentionally incremental:
+The project is being developed incrementally:
 
-- [ ] Establish repository structure, contribution guidelines, and automated checks.
-- [ ] Build the CLI foundation and a reliable command interface.
-- [ ] Implement the first local tools: Error Explainer and Project Analyzer.
-- [ ] Add Dependency Doctor.
-- [ ] Publish the documentation website.
-- [ ] Expand with Deployment Doctor, API Tester, and Environment Doctor.
-- [ ] Add security checks and documentation generation.
-- [ ] Gather community feedback and improve based on real-world use.
+- [x] Establish repository structure, contribution guidelines, and automated checks.
+- [x] Build the Python CLI foundation and command interface.
+- [x] Implement local project analysis and error explanation.
+- [x] Add offline dependency, configuration, environment, documentation, and project health checks.
+- [x] Add deployment, security, Git, release, test-readiness, and performance diagnostics.
+- [x] Add HTML accessibility hygiene checks.
+- [ ] Expand CLI language and framework coverage based on real-world feedback.
+- [ ] Improve documentation and publish a useful project website.
+- [ ] Add more robust tests, examples, and contributor-friendly workflows.
 
-Features will be marked complete only when they are implemented, documented, and tested.
+Features will be marked complete only when they are implemented, documented, and tested. The web platform remains planned and is not currently presented as an available product.
 
 ## Contributing
 
