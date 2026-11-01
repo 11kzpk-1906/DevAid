@@ -8,6 +8,7 @@ from devaid.analyzers.project import analyze_project
 from devaid.commands.explain import explain
 from devaid.diagnostics.dependencies import check_dependencies
 from devaid.diagnostics.health import health_check
+from devaid.diagnostics.config import check_config
 
 app = typer.Typer(
     name="devaid",
@@ -33,6 +34,7 @@ app.command(name="explain")(explain)
 app.command(name="analyze")(analyze_project)
 app.command(name="deps")(check_dependencies)
 app.command(name="health")(health_check)
+app.command(name="config")(check_config)
 
 if __name__ == "__main__":
     app()
