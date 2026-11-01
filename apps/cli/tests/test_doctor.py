@@ -14,6 +14,11 @@ def test_full_doctor_runs_all_local_checks(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     (tmp_path / ".gitignore").write_text(".env\n.env.*\n", encoding="utf-8")
+    workflow_dir = tmp_path / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True)
+    (workflow_dir / "ci.yml").write_text(
+        "name: CI\npermissions:\n  contents: read\n", encoding="utf-8"
+    )
     (tmp_path / "pyproject.toml").write_text(
         '[project]\nname = "sample"\nversion = "1.0.0"\n',
         encoding="utf-8",
@@ -34,9 +39,10 @@ def test_full_doctor_runs_all_local_checks(tmp_path: Path) -> None:
     assert "Release Doctor" in result.output
     assert "Performance Doctor" in result.output
     assert "Accessibility Doctor" in result.output
+    assert "Workflow Doctor" in result.output
     assert "Full Doctor complete" in result.output
     assert "Final summary:" in result.output
-    assert "12/12 diagnostic reports completed" in " ".join(result.output.split())
+    assert "13/13 diagnostic reports completed" in " ".join(result.output.split())
 
 
 def test_full_doctor_rejects_invalid_directory(tmp_path: Path) -> None:
