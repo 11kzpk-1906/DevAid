@@ -11,6 +11,7 @@ from devaid.diagnostics.config import check_config
 from devaid.diagnostics.dependencies import check_dependencies
 from devaid.diagnostics.deployment import check_deployment
 from devaid.diagnostics.documentation import check_documentation
+from devaid.diagnostics.docker import docker_doctor
 from devaid.diagnostics.environment import check_environment
 from devaid.diagnostics.git import git_doctor
 from devaid.diagnostics.health import health_check
@@ -50,6 +51,7 @@ def run_doctor(path: Path) -> None:
         ("Performance hygiene", lambda: performance_doctor(root)),
         ("Accessibility hygiene", lambda: accessibility_doctor(root)),
         ("GitHub Actions workflows", lambda: workflow_doctor(root)),
+        ("Docker configuration", lambda: docker_doctor(root)),
         ("Environment", check_environment),
     )
 
