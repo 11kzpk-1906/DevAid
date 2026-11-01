@@ -86,7 +86,7 @@ uv run pytest
 
 ### Web platform and documentation
 
-A static browser-tools MVP is available in `web/` with a JSON Inspector and Regex Tester. These tools run entirely in the browser tab; no input is uploaded. The browser MVP does not execute the Python CLI or inspect local project folders.
+A static browser-tools MVP is available in `web/` with a JSON Inspector, Regex Tester, and URL Encoder / Decoder. These tools run entirely in the browser tab; no input is uploaded. The browser MVP does not execute the Python CLI or inspect local project folders.
 
 - Open browser tools from the repository's `web/` directory.
 - Read the static documentation in `docs/`.
