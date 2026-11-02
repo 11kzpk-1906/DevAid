@@ -301,6 +301,7 @@ el("copy-workflow-report").addEventListener("click",async()=>{
 
 // Public GitHub repository health scan. Read-only; no token or backend.
 let latestRepositoryReport="";
+let lastRepositoryFindings=[];
 function repositoryFinding(level,path,message){
   return {level,path,message};
 }
@@ -405,6 +406,7 @@ el("scan-repository").addEventListener("click",async()=>{
   try{
     const target=parseRepositoryUrl(el("repo-url").value);
     const result=await inspectPublicRepository(target.owner,target.name);
+    lastRepositoryFindings=result.findings;
     renderRepositoryFindings(result.findings);
     latestRepositoryReport="# Repository health report: "+target.fullName+"\n\n"+
       result.findings.map(item=>"["+item.level+"] "+item.path+" — "+item.message).join("\n");
@@ -428,4 +430,132 @@ el("copy-repository-report").addEventListener("click",async()=>{
   if(!latestRepositoryReport)return;
   try{await navigator.clipboard.writeText(latestRepositoryReport);el("repository-status").textContent="Repository report copied.";}
   catch{el("repository-status").textContent="Clipboard unavailable in this browser.";}
+});
+
+
+// Repository topics suggestions: curated keyword matching, no network calls.
+let latestTopics=[];
+el("analyze-topics").addEventListener("click",()=>{
+  const source=[el("topics-name").value,el("topics-description").value,el("topics-stack").value].join(" ").toLowerCase();
+  const rules=[
+    ["python",/python|typer|django|flask|fastapi/],["javascript",/javascript|\bjs\b|node|npm/],
+    ["typescript",/typescript|\bts\b/],["cli",/command.line|\bcli\b|terminal/],
+    ["developer-tools",/developer|dev tools|toolkit|debug/],["open-source",/open.source|community|contribut/],
+    ["privacy",/privacy|local.first|offline|on.device/],["security",/security|vulnerabilit|secret|audit/],
+    ["automation",/automation|workflow|ci\/cd|pipeline/],["testing",/test|pytest|jest|vitest/],
+    ["docker",/docker|container|compose/],["github-actions",/github actions|workflow|actions/],
+    ["documentation",/readme|documentation|docs|markdown/],["api",/\bapi\b|http|rest/],
+    ["web",/website|web app|browser|frontend/],["react",/react|vite/],
+    ["rust",/rust|cargo/],["go",/golang|\bgo\b/],["java",/java|gradle|maven/]
+  ];
+  const matches=rules.filter(([,pattern])=>pattern.test(source)).map(([topic])=>topic);
+  if(!matches.length)matches.push("developer-tools","open-source");
+  latestTopics=[...new Set(matches)].slice(0,20);
+  const out=el("topics-results");out.replaceChildren();
+  latestTopics.forEach(topic=>{const row=document.createElement("div");row.className="diff-line same";row.textContent=topic;out.append(row);});
+  el("topics-status").textContent=latestTopics.length+" topic suggestions. Review them before adding to GitHub.";
+});
+el("copy-topics").addEventListener("click",async()=>{
+  if(!latestTopics.length)return;
+  try{await navigator.clipboard.writeText(latestTopics.join(", "));el("topics-status").textContent="Topics copied.";}
+  catch{el("topics-status").textContent="Clipboard unavailable in this browser.";}
+});
+
+// Transparent checklist score based on the most recent repository scan.
+el("score-repository").addEventListener("click",()=>{
+  if(!lastRepositoryFindings.length){el("score-status").textContent="Run the Repository Health Checker first.";return;}
+  const pass=lastRepositoryFindings.filter(x=>x.level==="PASS").length;
+  const warn=lastRepositoryFindings.filter(x=>x.level==="WARN").length;
+  const errors=lastRepositoryFindings.filter(x=>x.level==="ERROR").length;
+  const total=pass+warn+errors;
+  const score=total?Math.round((pass/total)*100):0;
+  el("score-summary").textContent="Checklist score: "+score+"/100 · "+pass+" pass · "+warn+" warnings · "+errors+" errors";
+  const output=el("score-findings");output.replaceChildren();
+  const note=document.createElement("p");note.textContent="Informational checks are excluded. This score measures only the presence of checklist items and is not a security assessment.";output.append(note);
+  lastRepositoryFindings.filter(x=>x.level!=="INFO").forEach(item=>{
+    const row=document.createElement("div");row.className="diff-line "+(item.level==="PASS"?"same":"removed");
+    row.textContent="["+item.level+"] "+item.path+" — "+item.message;output.append(row);
+  });
+  el("score-status").textContent="Score calculated from the latest public repository scan.";
+});
+
+// README completeness checks use headings and text only.
+el("analyze-readme").addEventListener("click",()=>{
+  const source=el("readme-input").value;
+  if(!source.trim()){el("readme-status").textContent="Paste README Markdown first.";return;}
+  const lower=source.toLowerCase();
+  const checks=[
+    ["Project title",/^#\s+\S/m.test(source)],
+    ["Project description",source.trim().split(/\n+/).some(line=>line.trim()&&!line.trim().startsWith("#")&&line.trim().length>20)],
+    ["Installation / getting started",/installation|getting started|quick start|setup/.test(lower)],
+    ["Usage / examples",/usage|example|quick start|how to use/.test(lower)],
+    ["Features",/features|what it does/.test(lower)],
+    ["License",/license/.test(lower)],
+    ["Contributing guidance",/contribut/.test(lower)],
+    ["Support / issue reporting",/support|issues|bug report/.test(lower)],
+    ["Screenshots / demo",/screenshot|demo|preview/.test(lower)],
+    ["Badges",/!\[[^\]]*\]\(https?:\/\/|shields\.io/.test(source)]
+  ];
+  const output=el("readme-findings");output.replaceChildren();
+  checks.forEach(([label,ok])=>{const row=document.createElement("div");row.className="diff-line "+(ok?"same":"added");row.textContent=(ok?"PASS  ":"REVIEW  ")+label;output.append(row);});
+  const pass=checks.filter(x=>x[1]).length;
+  el("readme-summary").textContent=pass+"/"+checks.length+" README checklist items present.";
+  el("readme-status").textContent="Static review complete. Recommendations are guidance, not a quality grade.";
+});
+el("clear-readme").addEventListener("click",()=>{el("readme-input").value="";el("readme-findings").replaceChildren();el("readme-summary").textContent="";el("readme-status").textContent="Cleared.";});
+
+// Common Git commands are described without running or changing repository state.
+const gitHelp=[
+  {test:/^git status(?:\s|$)/,text:"Shows the current branch and working-tree state: modified, staged, and untracked files. It does not change files."},
+  {test:/^git add(?:\s|$)/,text:"Stages selected changes for the next commit. Review the staged diff before committing."},
+  {test:/^git commit(?:\s|$)/,text:"Creates a commit from staged changes. The commit records a snapshot and message."},
+  {test:/^git push(?:\s|$)/,text:"Uploads local commits to a remote repository. Check the destination branch before pushing."},
+  {test:/^git pull(?:\s|$)/,text:"Fetches remote changes and integrates them into the current branch. It may create a merge or rebase depending on configuration."},
+  {test:/^git fetch(?:\s|$)/,text:"Downloads remote references and objects without integrating them into your current branch."},
+  {test:/^git clone(?:\s|$)/,text:"Creates a local copy of a remote repository."},
+  {test:/^git switch(?:\s|$)/,text:"Changes the current branch. Use -c to create and switch to a new branch."},
+  {test:/^git checkout(?:\s|$)/,text:"Switches branches or restores paths, depending on arguments. Older checkout forms can discard uncommitted work."},
+  {test:/^git merge(?:\s|$)/,text:"Integrates another branch into the current branch. Resolve conflicts and run tests before pushing."},
+  {test:/^git rebase(?:\s|$)/,text:"Replays commits onto a new base to create a more linear history. Avoid rebasing shared published commits unless your team agrees."},
+  {test:/^git log(?:\s|$)/,text:"Displays commit history. Add --oneline --graph --decorate for a compact branch view."},
+  {test:/^git diff(?:\s|$)/,text:"Shows changes between working-tree, staged, and commit states. Use --staged to inspect what will enter the next commit."},
+  {test:/^git restore(?:\s|$)/,text:"Restores file contents. Without --staged it can discard working-tree edits; inspect the path and state first."},
+  {test:/^git reset(?:\s|$)/,text:"Moves the current branch reference or unstages changes depending on mode. --hard can discard local work; understand the effect before using it."},
+  {test:/^git stash(?:\s|$)/,text:"Temporarily shelves tracked working-tree changes so you can work on something else."},
+  {test:/^git cherry-pick(?:\s|$)/,text:"Applies the changes introduced by an existing commit onto the current branch."},
+  {test:/^git tag(?:\s|$)/,text:"Lists or creates named references, commonly used to mark release versions."}
+];
+el("explain-git").addEventListener("click",()=>{
+  const command=el("git-command").value.trim().replace(/\s+/g," ");
+  const output=el("git-explanation");
+  if(!command){el("git-status").textContent="Enter a Git command.";output.textContent="";return;}
+  if(!/^git\s/.test(command)){el("git-status").textContent="Enter a command beginning with git.";output.textContent="";return;}
+  const match=gitHelp.find(item=>item.test.test(command));
+  output.textContent=match?match.text:"This command is not in the built-in guide yet. Use git help <command> or git <command> --help to read the official local manual. DevAid does not execute commands.";
+  el("git-status").textContent=match?"Explanation found.":"No built-in explanation available.";
+});
+
+// Starter ignore templates. Review project-specific rules before committing.
+const ignoreTemplates={
+  python:"__pycache__/\n*.py[cod]\n*$py.class\n.Python\n.venv/\nvenv/\nenv/\n.pytest_cache/\n.mypy_cache/\n.ruff_cache/\n.coverage\nhtmlcov/\ndist/\nbuild/\n*.egg-info/\n",
+  node:"node_modules/\ndist/\nbuild/\ncoverage/\n.npm/\n*.log\n.env\n.env.*\n!.env.example\n",
+  windows:"Thumbs.db\nDesktop.ini\n$RECYCLE.BIN/\n",
+  macos:".DS_Store\n.AppleDouble\n.LSOverride\n",
+  vscode:".vscode/*\n!.vscode/extensions.json\n!.vscode/settings.json\n",
+  jetbrains:".idea/\n*.iml\n",
+  java:"*.class\n*.jar\n*.war\n.gradle/\nbuild/\n",
+  rust:"/target/\n**/*.rs.bk\n",
+  go:"/bin/\n/vendor/\n*.test\n"
+};
+el("generate-ignore").addEventListener("click",()=>{
+  const selected=[...el("ignore-stack").selectedOptions].map(option=>option.value);
+  if(!selected.length){el("ignore-status").textContent="Choose at least one preset.";return;}
+  const sections=selected.map(key=>"# "+key+"\n"+ignoreTemplates[key]);
+  el("ignore-output").value="# Generated by DevAid. Review before committing.\n\n"+sections.join("\n");
+  el("ignore-status").textContent="Generated "+selected.length+" preset(s). Review the rules for your project.";
+});
+el("copy-ignore").addEventListener("click",async()=>{
+  if(!el("ignore-output").value)return;
+  try{await navigator.clipboard.writeText(el("ignore-output").value);el("ignore-status").textContent=".gitignore copied.";}
+  catch{el("ignore-status").textContent="Clipboard unavailable in this browser.";}
 });
