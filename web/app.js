@@ -559,3 +559,178 @@ el("copy-ignore").addEventListener("click",async()=>{
   try{await navigator.clipboard.writeText(el("ignore-output").value);el("ignore-status").textContent=".gitignore copied.";}
   catch{el("ignore-status").textContent="Clipboard unavailable in this browser.";}
 });
+
+
+// Changelog generator: groups pasted commit subjects without invoking Git.
+let latestChangelog="";
+el("generate-changelog").addEventListener("click",()=>{
+  const lines=el("changelog-input").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  if(!lines.length){el("changelog-status").textContent="Paste at least one commit message.";return;}
+  const groups={Features:[],"Bug fixes":[],"Performance":[],Documentation:[],"Maintenance":[]};
+  lines.forEach(line=>{
+    const match=line.match(/^(feat|fix|perf|docs|refactor|test|build|ci|chore)(?:\([^)]*\))?(!)?:\s*(.+)$/i);
+    if(!match){groups.Maintenance.push(line);return;}
+    const type=match[1].toLowerCase();
+    const title=match[3].replace(/^./,c=>c.toUpperCase())+(match[2]?" (breaking change)":"");
+    const bucket=type==="feat"?"Features":type==="fix"?"Bug fixes":type==="perf"?"Performance":type==="docs"?"Documentation":"Maintenance";
+    groups[bucket].push(title);
+  });
+  const heading=el("changelog-version").value.trim()||"Unreleased";
+  latestChangelog="# "+heading+"\n";
+  Object.entries(groups).forEach(([name,items])=>{if(items.length)latestChangelog+="\n## "+name+"\n"+items.map(x=>"- "+x).join("\n")+"\n";});
+  el("changelog-output").value=latestChangelog.trim()+"\n";
+  el("changelog-status").textContent=lines.length+" commit message(s) grouped. Review before publishing.";
+});
+el("copy-changelog").addEventListener("click",async()=>{if(!latestChangelog)return;try{await navigator.clipboard.writeText(latestChangelog);el("changelog-status").textContent="Changelog copied.";}catch{el("changelog-status").textContent="Clipboard unavailable.";}});
+// Conventional Commit helper.
+let latestCommit="";
+el("make-commit").addEventListener("click",()=>{
+  const summary=el("commit-summary").value.trim().replace(/\s+/g," ");
+  if(!summary){el("commit-status").textContent="Describe the change first.";return;}
+  if(summary.length>72){el("commit-status").textContent="Keep the subject under 72 characters; shorten the summary.";return;}
+  const type=el("commit-type").value,scope=el("commit-scope").value.trim().replace(/[^a-zA-Z0-9._-]/g,"");
+  latestCommit=type+(scope?"("+scope+")":"")+": "+summary.charAt(0).toLowerCase()+summary.slice(1);
+  el("commit-output").value=latestCommit;el("commit-status").textContent="Conventional Commit subject generated.";
+});
+el("copy-commit").addEventListener("click",async()=>{if(!latestCommit)return;try{await navigator.clipboard.writeText(latestCommit);el("commit-status").textContent="Commit message copied.";}catch{el("commit-status").textContent="Clipboard unavailable.";}});
+// Safe minimal Markdown renderer: raw HTML is escaped and never inserted as markup.
+function escapeMarkdownHtml(value){return value.replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));}
+function renderMarkdown(source){
+  const lines=source.replace(/\r/g,"").split("\n"),out=[];let inCode=false,code=[],list=false;
+  const inline=value=>value.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>').replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>").replace(/\x60([^\x60]+)\x60/g,"<code>$1</code>");
+  const closeList=()=>{if(list){out.push("</ul>");list=false;}};
+  for(const line of lines){
+    if(line.startsWith("```")){closeList();if(inCode){out.push("<pre><code>"+escapeMarkdownHtml(code.join("\n"))+"</code></pre>");code=[];inCode=false;}else inCode=true;continue;}
+    if(inCode){code.push(line);continue;}
+    if(!line.trim()){closeList();continue;}
+    const heading=line.match(/^(#{1,6})\s+(.+)$/);
+    if(heading){closeList();const n=heading[1].length;out.push("<h"+n+">"+inline(escapeMarkdownHtml(heading[2]))+"</h"+n+">");continue;}
+    if(/^\s*[-*+]\s+/.test(line)){if(!list){out.push("<ul>");list=true;}out.push("<li>"+inline(escapeMarkdownHtml(line.replace(/^\s*[-*+]\s+/,"")))+"</li>");continue;}
+    if(/^>\s?/.test(line)){closeList();out.push("<blockquote>"+inline(escapeMarkdownHtml(line.replace(/^>\s?/,"")))+"</blockquote>");continue;}
+    closeList();out.push("<p>"+inline(escapeMarkdownHtml(line))+"</p>");
+  }
+  closeList();if(inCode)out.push("<pre><code>"+escapeMarkdownHtml(code.join("\n"))+"</code></pre>");
+  return out.join("\n");
+}
+el("markdown-input").addEventListener("input",()=>{el("markdown-preview").innerHTML=renderMarkdown(el("markdown-input").value);});
+el("markdown-preview").innerHTML=renderMarkdown(el("markdown-input").value);
+
+// License notes are informational, not a legal compatibility verdict.
+const licenseNotes={
+  "MIT":"Permissive; generally allows reuse with preservation of copyright and license notices.",
+  "Apache-2.0":"Permissive; includes express patent license and NOTICE-related conditions.",
+  "BSD-3-Clause":"Permissive; retain notices and follow the non-endorsement condition.",
+  "ISC":"Short permissive license, broadly similar in practical effect to MIT.",
+  "GPL-2.0-only":"Strong copyleft; distribution of covered combined works can trigger source and same-license obligations.",
+  "GPL-3.0-only":"Strong copyleft with additional provisions, including patent-related terms.",
+  "LGPL-3.0-only":"Library-focused copyleft; linking and modification details matter.",
+  "MPL-2.0":"File-level copyleft; modified MPL-covered files generally remain under MPL when distributed.",
+  "AGPL-3.0-only":"Network-use provision can create source-sharing obligations for modified covered software used over a network."
+};
+el("check-licenses").addEventListener("click",()=>{
+  const project=el("project-license").value;
+  const deps=[...new Set(el("dependency-licenses").value.split(",").map(x=>x.trim()).filter(Boolean))];
+  const out=el("license-results");out.replaceChildren();
+  const add=(text)=>{const row=document.createElement("p");row.textContent=text;out.append(row);};
+  add("Project license: "+project+". "+(licenseNotes[project]||"No automated compatibility conclusion is provided."));
+  if(!deps.length)add("Enter dependency SPDX identifiers to review their license notes.");
+  deps.forEach(name=>add(name+": "+(licenseNotes[name]||"Unknown identifier in this guide; verify the exact license and version from the upstream project.")));
+  add("Do not infer compatibility from license names alone. Linking, distribution, modifications, exceptions, and jurisdiction can change obligations. Consult the license texts and qualified legal advice for release decisions.");
+  el("license-status").textContent="Notes generated for "+deps.length+" dependency license(s); no legal compatibility verdict is made.";
+});
+
+// Dependency manifest hygiene scanner; no vulnerability feed is queried.
+el("check-dependencies").addEventListener("click",()=>{
+  const raw=el("dependency-input").value.trim();if(!raw){el("dependency-status").textContent="Paste a package.json or requirements.txt first.";return;}
+  const findings=[];const add=(level,item,message)=>findings.push({level,item,message});
+  if(raw.startsWith("{")){
+    let data;try{data=JSON.parse(raw);}catch(error){el("dependency-status").textContent="Invalid JSON: "+error.message;return;}
+    const groups=["dependencies","devDependencies","optionalDependencies","peerDependencies"];let count=0;
+    groups.forEach(group=>Object.entries(data[group]||{}).forEach(([name,version])=>{
+      count++;const v=String(version);
+      if(v==="*"||v==="latest")add("REVIEW",name,"Unbounded or moving version range ("+v+").");
+      else if(/^(git\+|https?:|github:|file:)/i.test(v))add("REVIEW",name,"Non-registry source; verify provenance and pinning.");
+      else if(/^[~^><=]/.test(v))add("INFO",name,"Version range allows updates; use a lockfile for reproducible installs.");
+    }));
+    if(!count)add("INFO","dependencies","No dependency entries found in recognized package.json sections.");
+    if(!data.engines||!data.engines.node)add("INFO","engines.node","Node.js version is not declared.");
+    add("INFO","lockfile","This pasted manifest cannot establish whether a committed lockfile is present.");
+  }else{
+    const lines=raw.split(/\r?\n/);let count=0;
+    lines.forEach((line,index)=>{
+      const value=line.trim();if(!value||value.startsWith("#")||value.startsWith("-r ")||value.startsWith("--"))return;
+      count++;
+      if(/^(git\+|https?:|file:)/i.test(value))add("REVIEW","line "+(index+1),"Direct URL or VCS dependency; verify source and immutable revision.");
+      else if(!/[<>=!~]/.test(value))add("REVIEW",value.split(/[;\s]/)[0],"No version constraint is specified.");
+      else if(/===|==/.test(value))add("PASS",value.split(/[<>=!~]/)[0],"Exact version pin found; still verify updates and hashes.");
+      else add("INFO",value.split(/[<>=!~]/)[0],"Version constraint found; lockfile and hash practices are not verified.");
+    });
+    if(!count)add("INFO","requirements","No dependency requirement lines found.");
+  }
+  const output=el("dependency-findings");output.replaceChildren();
+  findings.forEach(item=>{const row=document.createElement("div");row.className="diff-line "+(item.level==="PASS"?"same":item.level==="REVIEW"?"removed":"added");row.textContent="["+item.level+"] "+item.item+" — "+item.message;output.append(row);});
+  el("dependency-summary").textContent=findings.length+" manifest hygiene finding(s). No CVE or vulnerability lookup was performed.";
+  el("dependency-status").textContent="Static dependency manifest review complete.";
+});
+
+// Environment template checks. Never paste real .env values.
+el("check-env-template").addEventListener("click",()=>{
+  const raw=el("env-template").value;if(!raw.trim()){el("env-status").textContent="Paste a safe .env.example template.";return;}
+  const seen=new Set(),findings=[];raw.split(/\r?\n/).forEach((line,index)=>{
+    const value=line.trim();if(!value||value.startsWith("#"))return;
+    const match=value.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=(.*)$/);
+    if(!match){findings.push("[REVIEW] Line "+(index+1)+" — expected KEY=value syntax.");return;}
+    const key=match[1],content=match[2].trim();
+    if(seen.has(key))findings.push("[ERROR] "+key+" — duplicate variable.");seen.add(key);
+    if(!content)findings.push("[REVIEW] "+key+" — empty example value; add a safe placeholder or explanation.");
+    if(/^(changeme|replace.me|your.*here|xxx|todo)$/i.test(content))findings.push("[INFO] "+key+" — placeholder detected; document how to obtain the value.");
+    if(/(password|secret|token|api[_-]?key)/i.test(key)&&content&&!/^(changeme|replace.me|your.*here|xxx|todo|<.*>)$/i.test(content))findings.push("[REVIEW] "+key+" — template contains a non-obvious value; ensure it is not a real secret.");
+  });
+  const out=el("env-findings");out.replaceChildren();
+  (findings.length?findings:["[PASS] Template syntax looks consistent."]).forEach(item=>{const row=document.createElement("div");row.className="diff-line "+(item.startsWith("[PASS]")?"same":item.startsWith("[ERROR]")?"removed":"added");row.textContent=item;out.append(row);});
+  el("env-status").textContent=findings.length+" template finding(s). This does not inspect your machine environment.";
+});
+
+// API response inspector for pasted data only.
+el("inspect-api").addEventListener("click",()=>{
+  const body=el("api-body").value,code=Number(el("api-status-code").value),type=el("api-content-type").value.toLowerCase();
+  const out=el("api-findings");out.replaceChildren();const findings=[];
+  if(!Number.isInteger(code)||code<100||code>599){el("api-status").textContent="Enter a valid HTTP status code.";return;}
+  findings.push("HTTP "+code+" — "+(code>=200&&code<300?"success response":code>=300&&code<400?"redirect response":code>=400?"client/server error response":"informational response"));
+  let parsed,validJson=false;
+  if(body.trim()){try{parsed=JSON.parse(body);validJson=true;findings.push("Body: valid JSON; top-level type is "+(Array.isArray(parsed)?"array":parsed===null?"null":typeof parsed)+".");}
+    catch(error){findings.push("Body: not valid JSON ("+error.message+").");}}
+  else findings.push("Body is empty.");
+  if(type.includes("application/json")&&body.trim()&&!validJson)findings.push("Content-Type says JSON but the body could not be parsed as JSON.");
+  if(validJson&&Array.isArray(parsed))findings.push("Array contains "+parsed.length+" item(s).");
+  if(validJson&&parsed&&typeof parsed==="object"&&!Array.isArray(parsed))findings.push("Top-level keys: "+Object.keys(parsed).slice(0,30).join(", ")+".");
+  if(code>=400)findings.push("Inspect the API error contract and request details; do not expose credentials in shared logs.");
+  findings.forEach(item=>{const row=document.createElement("div");row.className="diff-line same";row.textContent=item;out.append(row);});
+  el("api-summary").textContent="Response inspection complete · "+(validJson?"JSON parsed":"body not parsed as JSON");
+  el("api-status").textContent="Pasted response analyzed locally; no request was sent.";
+});
+
+// Dockerfile heuristic analyzer.
+el("analyze-dockerfile").addEventListener("click",()=>{
+  const source=el("dockerfile-input").value;if(!source.trim()){el("dockerfile-status").textContent="Paste a Dockerfile first.";return;}
+  const lines=source.split(/\r?\n/),active=lines.map((line,i)=>({line:line.trim(),number:i+1})).filter(x=>x.line&&!x.line.startsWith("#"));
+  const instructions=active.map(x=>x.line.split(/\s+/)[0].toUpperCase());
+  const findings=[];const add=(level,line,msg)=>findings.push({level,line,msg});
+  const from=active.find(x=>/^FROM\s/i.test(x.line));
+  if(!from)add("ERROR","—","No FROM instruction found.");
+  else if(/:latest\b|^[^:]+$/.test((from.line.split(/\s+/)[1]||"").split(" AS ")[0]))add("REVIEW",from.number,"Base image uses latest or no explicit tag; consider a deliberate version or digest.");
+  if(!instructions.includes("USER"))add("REVIEW","—","No USER instruction found; container may run as root.");
+  if(!instructions.includes("WORKDIR"))add("INFO","—","No WORKDIR instruction found.");
+  if(!instructions.includes("HEALTHCHECK"))add("INFO","—","No HEALTHCHECK instruction found; add one when the service supports meaningful health checks.");
+  active.forEach(x=>{
+    if(/^ADD\s/i.test(x.line)&&!/^ADD\s+https?:/i.test(x.line))add("INFO",x.number,"Prefer COPY unless archive extraction or remote ADD behavior is needed.");
+    if(/^(ARG|ENV)\s+\w*(TOKEN|SECRET|PASSWORD|KEY)\w*=/i.test(x.line))add("ERROR",x.number,"Potential secret in ARG/ENV; inject secrets at runtime instead.");
+    if(/^RUN\s/i.test(x.line)&&/apt-get install/.test(x.line)&&!/(rm -rf \/var\/lib\/apt\/lists|--no-install-recommends)/.test(x.line))add("INFO",x.number,"Consider --no-install-recommends and cleaning apt lists in the same layer.");
+    if(/^RUN\s/i.test(x.line)&&/pip install/.test(x.line)&&!/--no-cache-dir/.test(x.line))add("INFO",x.number,"Consider pip --no-cache-dir to reduce image layer size.");
+  });
+  if(!instructions.includes("CMD")&&!instructions.includes("ENTRYPOINT"))add("INFO","—","No CMD or ENTRYPOINT instruction found; confirm intended startup behavior.");
+  const out=el("dockerfile-findings");out.replaceChildren();
+  findings.forEach(item=>{const row=document.createElement("div");row.className="diff-line "+(item.level==="ERROR"?"removed":item.level==="REVIEW"?"added":"same");row.textContent="["+item.level+"] Line "+item.line+" — "+item.msg;out.append(row);});
+  el("dockerfile-summary").textContent=findings.length+" finding(s) · "+findings.filter(x=>x.level==="ERROR").length+" errors · "+findings.filter(x=>x.level==="REVIEW").length+" reviews.";
+  el("dockerfile-status").textContent="Static analysis complete; validate with Docker tooling before release.";
+});
