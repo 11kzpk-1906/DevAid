@@ -344,18 +344,25 @@ async function inspectPublicRepository(owner,name){
   if(Array.isArray(metadata.topics)&&metadata.topics.length)add("PASS","topics","Repository topics are configured ("+metadata.topics.length+").");
   else add("INFO","topics","Consider adding repository topics to improve discoverability.");
   const checks=[
-    ["README.md","README","A README explains the project's purpose and how to get started."],
-    ["CONTRIBUTING.md","CONTRIBUTING","Contribution guidance helps new contributors make useful changes."],
-    ["CODE_OF_CONDUCT.md","CODE_OF_CONDUCT","A code of conduct sets expectations for community participation."],
-    ["SECURITY.md","SECURITY","A security policy explains how to report vulnerabilities responsibly."]
+    {label:"README",paths:["README.md"],description:"A README explains the project's purpose and how to get started."},
+    {label:"CONTRIBUTING",paths:["CONTRIBUTING.md",".github/CONTRIBUTING.md","docs/CONTRIBUTING.md"],description:"Contribution guidance helps new contributors make useful changes."},
+    {label:"CODE_OF_CONDUCT",paths:["CODE_OF_CONDUCT.md",".github/CODE_OF_CONDUCT.md"],description:"A code of conduct sets expectations for community participation."},
+    {label:"SECURITY",paths:["SECURITY.md",".github/SECURITY.md"],description:"A security policy explains how to report vulnerabilities responsibly."}
   ];
-  const results=await Promise.all(checks.map(async([path,label,description])=>{
-    try{await githubGet(base+"/contents/"+path);return {path,label,description,exists:true};}
-    catch(error){if(error.status===404)return {path,label,description,exists:false};throw error;}
+  const results=await Promise.all(checks.map(async({label,paths,description})=>{
+    for(const path of paths){
+      try{
+        await githubGet(base+"/contents/"+path);
+        return {path,label,description,exists:true};
+      }catch(error){
+        if(error.status!==404)throw error;
+      }
+    }
+    return {path:paths[0],label,description,exists:false};
   }));
   for(const item of results){
     if(item.exists)add("PASS",item.path,item.label+" file found.");
-    else add(item.path==="README.md"||item.path==="SECURITY.md"?"WARN":"INFO",item.path,"No "+item.path+" file found. "+item.description);
+    else add(item.label==="README"||item.label==="SECURITY"?"WARN":"INFO",item.path,"No "+item.label+".md file found in the recognized locations. "+item.description);
   }
   const directoryChecks=[
     [".github/ISSUE_TEMPLATE","issue_templates","Issue templates make bug reports and feature requests easier to submit."],
