@@ -53,3 +53,38 @@ function runDiff(){
 el("run-diff").addEventListener("click",runDiff);
 el("clear-diff").addEventListener("click",()=>{el("diff-before").value="";el("diff-after").value="";el("diff-output").replaceChildren();el("diff-summary").textContent="";el("diff-status").textContent="Cleared.";el("diff-status").style.color="var(--muted)";latestDiff="";});
 el("copy-diff").addEventListener("click",async()=>{if(!latestDiff)return;try{await navigator.clipboard.writeText(latestDiff);el("diff-status").textContent="Diff copied.";}catch{el("diff-status").textContent="Clipboard unavailable in this browser.";}});
+
+// YAML parsing is performed in-browser with the js-yaml parser.
+// The parser script is served by jsDelivr; YAML content is never sent to it.
+function parseYaml(){
+  const source=el("yaml-input").value;
+  try{
+    if(!window.jsyaml)throw new Error("The YAML parser could not load. Check your internet connection and refresh the page.");
+    const value=window.jsyaml.load(source,{schema:window.jsyaml.DEFAULT_SCHEMA});
+    el("yaml-output").value=JSON.stringify(value,null,2);
+    el("yaml-status").textContent="Valid YAML.";
+    el("yaml-status").style.color="var(--green)";
+    return value;
+  }catch(error){
+    el("yaml-output").value="";
+    el("yaml-status").textContent="Invalid YAML: "+error.message;
+    el("yaml-status").style.color="#ff9999";
+    return undefined;
+  }
+}
+el("validate-yaml").addEventListener("click",()=>parseYaml());
+el("format-yaml").addEventListener("click",()=>{
+  const value=parseYaml();
+  if(value===undefined)return;
+  el("yaml-input").value=window.jsyaml.dump(value,{noRefs:true,lineWidth:100});
+  el("yaml-status").textContent="YAML parsed and formatted.";
+});
+el("clear-yaml").addEventListener("click",()=>{
+  el("yaml-input").value="";el("yaml-output").value="";
+  el("yaml-status").textContent="Cleared.";el("yaml-status").style.color="var(--muted)";
+});
+el("copy-yaml").addEventListener("click",async()=>{
+  if(!el("yaml-output").value)return;
+  try{await navigator.clipboard.writeText(el("yaml-output").value);el("yaml-status").textContent="Copied parsed JSON.";}
+  catch{el("yaml-status").textContent="Clipboard unavailable in this browser.";}
+});
