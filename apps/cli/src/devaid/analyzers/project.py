@@ -43,6 +43,16 @@ def _detect_frameworks(manifest_text: str) -> list[str]:
         "Svelte": ('"svelte"', "'svelte'"),
         "Express": ('"express"', "'express'"),
         "Spring Boot": ("spring-boot",),
+        "Laravel": ("laravel/framework",),
+        "Symfony": ("symfony/",),
+        "Ruby on Rails": ("rails",),
+        "Flutter": ("flutter",),
+        "Gin": ("github.com/gin-gonic/gin",),
+        "Fiber": ("github.com/gofiber/fiber",),
+        "Axum": ("axum",),
+        "Actix Web": ("actix-web",),
+        "ASP.NET Core": ("microsoft.aspnetcore",),
+        "Ktor": ("io.ktor",),
     }
     return [
         framework
@@ -63,6 +73,13 @@ def _detect_package_managers(path: Path) -> list[str]:
         "Bun": ("bun.lock", "bun.lockb"),
         "Cargo": ("Cargo.lock",),
         "Go modules": ("go.sum",),
+        "Composer": ("composer.lock",),
+        "Bundler": ("Gemfile.lock",),
+        "Pub": ("pubspec.lock",),
+        "Swift Package Manager": ("Package.resolved",),
+        "Mix": ("mix.lock",),
+        "Gradle": ("gradle.lockfile",),
+        "NuGet": ("packages.lock.json",),
     }
     return [
         manager
@@ -82,13 +99,22 @@ def analyze_project(path: Path) -> None:
         "Node.js": ["package.json"],
         "Rust": ["Cargo.toml"],
         "Go": ["go.mod"],
-        "Java": ["pom.xml", "build.gradle"],
+        "Java": ["pom.xml", "build.gradle", "build.gradle.kts"],
+        "Kotlin": ["build.gradle.kts", "settings.gradle.kts"],
+        "PHP": ["composer.json"],
+        "Ruby": ["Gemfile"],
+        "Dart": ["pubspec.yaml"],
+        "Swift": ["Package.swift"],
+        "Elixir": ["mix.exs"],
+        "C# / .NET": ["*.csproj", "*.sln"],
+        "C / C++": ["CMakeLists.txt", "Makefile"],
     }
 
     detected = [
         language
         for language, files in markers.items()
         if any((path / file).exists() for file in files)
+        or any(path.glob(file) for file in files if "*" in file)
     ]
     manifest_text = _read_manifest_text(path)
     frameworks = _detect_frameworks(manifest_text)
