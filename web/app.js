@@ -719,7 +719,9 @@ el("analyze-dockerfile").addEventListener("click",()=>{
   const from=active.find(x=>/^FROM\s/i.test(x.line));
   if(!from)add("ERROR","—","No FROM instruction found.");
   else if(/:latest\b|^[^:]+$/.test((from.line.split(/\s+/)[1]||"").split(" AS ")[0]))add("REVIEW",from.number,"Base image uses latest or no explicit tag; consider a deliberate version or digest.");
-  if(!instructions.includes("USER"))add("REVIEW","—","No USER instruction found; container may run as root.");
+  const userInstruction=active.find(x=>/^USER\s+/i.test(x.line));
+  if(!userInstruction)add("REVIEW","—","No USER instruction found; container may run as root.");
+  else if(/^USER\s+(root|0)(?:\s|$)/i.test(userInstruction.line))add("REVIEW",userInstruction.number,"Container explicitly switches to root; prefer a dedicated non-root user where possible.");
   if(!instructions.includes("WORKDIR"))add("INFO","—","No WORKDIR instruction found.");
   if(!instructions.includes("HEALTHCHECK"))add("INFO","—","No HEALTHCHECK instruction found; add one when the service supports meaningful health checks.");
   active.forEach(x=>{
