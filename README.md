@@ -140,14 +140,17 @@ The project is being developed incrementally:
 - [x] Add offline dependency, configuration, environment, documentation, and project health checks.
 - [x] Add deployment, security, Git, release, test-readiness, and performance diagnostics.
 - [x] Add HTML accessibility hygiene checks.
-- [x] Add GitHub Actions workflow hygiene checks.
-- [x] Add Dockerfile and Docker Compose hygiene checks.
+- [x] Add GitHub Actions workflow hygiene checks in the CLI.
+- [x] Add Dockerfile and Docker Compose hygiene checks in the CLI.
 - [ ] Expand CLI language and framework coverage based on real-world feedback.
 - [x] Add a static browser-tools MVP (JSON Inspector and Regex Tester).
 - [x] Add a static documentation landing page.
 - [x] Add package-manager, Python, and JavaScript diagnostics plus Markdown/JSON report export.
 - [x] Add browser-native URL encoding and decoding.
-- [x] Add a local line-based Text Diff tool.\n- [x] Add YAML validation and formatting in the browser.\n- [x] Add a browser-based GitHub Actions workflow checker.\n- [x] Add a browser-based GitHub Actions workflow checker.
+- [x] Add a local line-based Text Diff tool.
+- [x] Add YAML validation and formatting in the browser.
+- [x] Add a heuristic Docker Compose checker in the browser.
+- [x] Add a browser-based GitHub Actions workflow checker.
 - [ ] Expand language and package-manager coverage based on real-world feedback.
 - [ ] Add more browser-native tools and contributor examples.
 
