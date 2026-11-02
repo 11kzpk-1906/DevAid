@@ -1,4 +1,3 @@
-from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -9,14 +8,14 @@ from devaid import plugins
 class FakeEntryPoint:
     name = "sample"
 
-    def __init__(self, callback: Callable[[Path], None]) -> None:
+    def __init__(self, callback: object) -> None:
         self.callback = callback
 
-    def load(self) -> Callable[[Path], None]:
+    def load(self) -> object:
         return self.callback
 
 
-def test_run_analyzer_plugin_calls_selected_entry_point(monkeypatch) -> None:
+def test_run_analyzer_plugin_calls_selected_entry_point(monkeypatch: pytest.MonkeyPatch) -> None:
     calls: list[Path] = []
     entry = FakeEntryPoint(calls.append)
     monkeypatch.setattr(plugins, "discover_analyzer_plugins", lambda: [entry])
