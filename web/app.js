@@ -187,7 +187,6 @@ function inspectWorkflow(workflow){
   if(!jobs.length)add("ERROR","jobs","Define at least one job.");
   const globalPermissions=workflow.permissions;
   const hasGlobalPermissions=globalPermissions!==undefined;
-  if(!hasGlobalPermissions)add("WARN","permissions","No workflow-level permissions are declared. Add least-privilege permissions at workflow or job level.");
   if(globalPermissions==="write-all")add("ERROR","permissions","write-all grants broad token permissions. Use explicit least-privilege permissions.");
   else if(globalPermissions==="read-all")add("INFO","permissions","read-all is broad; consider declaring only the scopes the workflow needs.");
   for(const [jobName,job] of jobs){
@@ -198,10 +197,16 @@ function inspectWorkflow(workflow){
     }
     if(!job["runs-on"]&&!job.uses)add("ERROR",base,"A job needs runs-on or a reusable-workflow uses reference.");
     if(!job.steps&&!job.uses)add("ERROR",base+".steps","A regular job must define a steps list.");
+    if(Array.isArray(job.steps)&&job.steps.length===0)add("WARN",base+".steps","This job has no steps.");
+    if(typeof job.uses==="string"&&!job.uses.startsWith("./")){
+      const reusableRef=job.uses.slice(job.uses.lastIndexOf("@")+1);
+      if(!job.uses.includes("@"))add("ERROR",base+".uses","Reusable workflow reference is missing a version or commit SHA.");
+      else if(!/^[a-f0-9]{40}$/i.test(reusableRef))add("WARN",base+".uses","Pin reusable workflows to a full 40-character commit SHA where possible.");
+    }
     if(job.steps!==undefined&&!Array.isArray(job.steps))add("ERROR",base+".steps","Steps must be a YAML list.");
-    if(job.timeout-minutes===undefined)add("WARN",base+".timeout-minutes","Set a job timeout-minutes value to prevent stuck jobs from running indefinitely.");
+    if(job["timeout-minutes"]===undefined)add("WARN",base+".timeout-minutes","Set a job timeout-minutes value to prevent stuck jobs from running indefinitely.");
     if(job.permissions==="write-all")add("ERROR",base+".permissions","write-all grants broad token permissions. Use explicit least-privilege permissions.");
-    else if(job.permissions===undefined&&!hasGlobalPermissions)add("WARN",base+".permissions","This job inherits the default token permissions. Declare the minimum required permissions.");
+    else if(job.permissions===undefined&&!hasGlobalPermissions)add("WARN",base+".permissions","This job inherits default token permissions. Declare the minimum required permissions at workflow or job level.");
     if(job.permissions&&typeof job.permissions==="object"&&!Array.isArray(job.permissions)){
       for(const [scope,permission] of Object.entries(job.permissions)){
         if(permission==="write-all")add("ERROR",base+".permissions."+scope,"Avoid write-all permissions.");
@@ -236,7 +241,7 @@ function inspectWorkflow(workflow){
       });
     }
   }
-  const eventNames=Array.isArray(triggers)?triggers:Object.keys(triggers&&typeof triggers==="object"?triggers:{});
+  const eventNames=Array.isArray(triggers)?triggers:typeof triggers==="string"?[triggers]:Object.keys(triggers&&typeof triggers==="object"?triggers:{});
   if(eventNames.includes("pull_request_target")){
     add("WARN","on.pull_request_target","This event runs with elevated trust for pull requests from forks. Avoid checking out or executing untrusted pull-request code.");
     for(const [jobName,job] of jobs){
