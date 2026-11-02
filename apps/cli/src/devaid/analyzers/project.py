@@ -111,12 +111,6 @@ def _detect_languages(path: Path) -> list[str]:
         "C / C++": ["CMakeLists.txt", "Makefile"],
     }
 
-    detected = [
-        language
-        for language, files in markers.items()
-        if any((path / file).exists() for file in files)
-        or any(any(path.glob(file)) for file in files if "*" in file)
-    ]
     return [
         language
         for language, files in markers.items()
