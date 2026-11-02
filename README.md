@@ -62,6 +62,8 @@ The following commands are implemented in the Python CLI. Most diagnostics are r
 | `devaid python-doctor PATH` | Review Python project structure and requirements hygiene. |
 | `devaid javascript-doctor PATH` | Review Node.js metadata and project hygiene. |
 | `devaid report PATH` | Export supported findings as Markdown or JSON. |
+| `devaid plugins` | List installed analyzer plugins without importing plugin code. |
+| `devaid plugin-run NAME PATH` | Explicitly load and run one installed analyzer plugin. |
 
 Run `devaid --help` or `devaid COMMAND --help` for command-specific options. Commands that accept a project path generally use the current directory when you pass `.`.
 
@@ -95,7 +97,7 @@ The static browser-tools MVP in `web/` includes a JSON Inspector, Regex Tester, 
 
 ## Technology direction
 
-The current CLI implementation uses Python and Typer. The planned web platform is expected to use:
+The CLI project analyzer recognizes Python, Node.js, Rust, Go, Java, Kotlin, PHP, Ruby, Dart, Swift, Elixir, C#/.NET, and C/C++ project markers. Package-manager detection includes common Python, JavaScript, Rust, Go, PHP, Ruby, Dart, Swift, Elixir, Gradle, and NuGet lockfiles. Detection is based on filenames and manifest text, so mixed-language projects may report multiple languages.\n\n### Analyzer plugin extension point\n\nDevAid supports optional Python analyzer plugins through the `devaid.analyzers` entry-point group. A plugin is a callable that accepts one `pathlib.Path` argument and performs its own analysis. Register it in your package metadata, for example:\n\n```toml\n[project.entry-points."devaid.analyzers"]\nmy-check = "my_package.devaid_plugin:analyze"\n```\n\nThe callback should accept a project path and print or otherwise present its findings. Use `devaid plugins` to list installed plugin names and `devaid plugin-run my-check .` to run one explicitly. Listing plugins reads entry-point metadata only; the plugin module is imported only when selected. Third-party plugins are executable Python code and should be installed only from sources you trust.\n\nThe current CLI implementation uses Python and Typer. The planned web platform is expected to use:
 
 - **Web:** React, TypeScript, and Tailwind CSS
 - **CLI:** Python and Typer (implemented)
