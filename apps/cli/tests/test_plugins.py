@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -8,10 +9,10 @@ from devaid import plugins
 class FakeEntryPoint:
     name = "sample"
 
-    def __init__(self, callback):
+    def __init__(self, callback: Callable[[Path], None]) -> None:
         self.callback = callback
 
-    def load(self):
+    def load(self) -> Callable[[Path], None]:
         return self.callback
 
 
