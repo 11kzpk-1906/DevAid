@@ -18,6 +18,11 @@ def _read_manifest_text(path: Path) -> str:
         "build.gradle",
         "Cargo.toml",
         "go.mod",
+        "composer.json",
+        "Gemfile",
+        "pubspec.yaml",
+        "Package.swift",
+        "mix.exs",
     )
     contents: list[str] = []
     for name in manifest_names:
@@ -114,7 +119,7 @@ def analyze_project(path: Path) -> None:
         language
         for language, files in markers.items()
         if any((path / file).exists() for file in files)
-        or any(path.glob(file) for file in files if "*" in file)
+        or any(any(path.glob(file)) for file in files if "*" in file)
     ]
     manifest_text = _read_manifest_text(path)
     frameworks = _detect_frameworks(manifest_text)
