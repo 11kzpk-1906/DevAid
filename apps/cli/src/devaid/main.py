@@ -1,5 +1,7 @@
 """DevAid CLI entry point."""
 
+from pathlib import Path
+
 import typer
 from rich.console import Console
 
@@ -27,6 +29,7 @@ from devaid.diagnostics.security import check_security
 from devaid.diagnostics.suggestions import show_suggestions
 from devaid.diagnostics.test_doctor import test_doctor
 from devaid.diagnostics.workflows import workflow_doctor
+from devaid.plugins import discover_analyzer_plugins, run_analyzer_plugin
 
 app = typer.Typer(
     name="devaid",
@@ -71,6 +74,28 @@ app.command(name="package-doctor")(package_doctor)
 app.command(name="python-doctor")(python_doctor)
 app.command(name="javascript-doctor")(javascript_doctor)
 app.command(name="report")(report)
+
+
+@app.command(name="plugins")
+def list_plugins() -> None:
+    """List installed third-party analyzer plugins without importing them."""
+    plugins = discover_analyzer_plugins()
+    if not plugins:
+        console.print("No analyzer plugins installed.")
+        console.print("Register an entry point in the devaid.analyzers group.")
+        return
+    for plugin in plugins:
+        console.print(f"[cyan]{plugin.name}[/cyan] — {plugin.value}")
+
+
+@app.command(name="plugin-run")
+def plugin_run(name: str, path: Path = Path(".")) -> None:
+    """Run one explicitly selected installed analyzer plugin."""
+    try:
+        run_analyzer_plugin(name, path)
+    except Exception as error:
+        console.print(f"[bold red]Plugin failed:[/bold red] {error}")
+        raise typer.Exit(code=1) from error
 
 if __name__ == "__main__":
     app()
