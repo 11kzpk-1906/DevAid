@@ -93,12 +93,8 @@ def _detect_package_managers(path: Path) -> list[str]:
     ]
 
 
-def analyze_project(path: Path) -> None:
-    """Analyze a project's languages, frameworks, and structure."""
-    if not path.exists() or not path.is_dir():
-        console.print("[bold red]Error:[/bold red] Invalid project directory.")
-        raise SystemExit(1)
-
+def _detect_languages(path: Path) -> list[str]:
+    """Detect languages from common project manifest and source markers."""
     markers = {
         "Python": ["pyproject.toml", "requirements.txt", "setup.py"],
         "Node.js": ["package.json"],
@@ -121,6 +117,21 @@ def analyze_project(path: Path) -> None:
         if any((path / file).exists() for file in files)
         or any(any(path.glob(file)) for file in files if "*" in file)
     ]
+    return [
+        language
+        for language, files in markers.items()
+        if any((path / file).exists() for file in files)
+        or any(any(path.glob(file)) for file in files if "*" in file)
+    ]
+
+
+def analyze_project(path: Path) -> None:
+    """Analyze a project's languages, frameworks, and structure."""
+    if not path.exists() or not path.is_dir():
+        console.print("[bold red]Error:[/bold red] Invalid project directory.")
+        raise SystemExit(1)
+
+    detected = _detect_languages(path)
     manifest_text = _read_manifest_text(path)
     frameworks = _detect_frameworks(manifest_text)
     package_managers = _detect_package_managers(path)
