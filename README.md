@@ -86,7 +86,7 @@ uv run pytest
 
 ### Web tools
 
-The static browser-tools MVP in `web/` includes a JSON Inspector, Regex Tester, URL Encoder / Decoder, line-based Text Diff, a YAML Validator, and a Docker Compose Checker. The tools process input in the browser tab; no project files are uploaded and no backend is required. Text Diff uses a bounded local comparison. YAML tools use the open-source js-yaml parser loaded from jsDelivr; YAML content is parsed in the browser and is not uploaded. An internet connection is required to load the parser.
+The static browser-tools MVP in `web/` includes a JSON Inspector, Regex Tester, URL Encoder / Decoder, line-based Text Diff, a YAML Validator, a Docker Compose Checker, and a GitHub Actions Workflow Checker. The tools process input in the browser tab; no project files are uploaded and no backend is required. Text Diff uses a bounded local comparison. YAML tools use the open-source js-yaml parser loaded from jsDelivr; YAML content is parsed in the browser and is not uploaded. An internet connection is required to load the parser.
 
 - Open browser tools from the repository's `web/` directory.
 - Read the static documentation in `docs/`.
@@ -147,7 +147,7 @@ The project is being developed incrementally:
 - [x] Add a static documentation landing page.
 - [x] Add package-manager, Python, and JavaScript diagnostics plus Markdown/JSON report export.
 - [x] Add browser-native URL encoding and decoding.
-- [x] Add a local line-based Text Diff tool.\n- [x] Add YAML validation and formatting in the browser.
+- [x] Add a local line-based Text Diff tool.\n- [x] Add YAML validation and formatting in the browser.\n- [x] Add a browser-based GitHub Actions workflow checker.\n- [x] Add a browser-based GitHub Actions workflow checker.
 - [ ] Expand language and package-manager coverage based on real-world feedback.
 - [ ] Add more browser-native tools and contributor examples.
 
