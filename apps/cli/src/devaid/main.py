@@ -4,6 +4,7 @@ from pathlib import Path
 
 import typer
 from rich.console import Console
+from rich.prompt import Prompt
 
 from devaid import __version__
 from devaid.analyzers.project import analyze_project
@@ -30,6 +31,7 @@ from devaid.diagnostics.suggestions import show_suggestions
 from devaid.diagnostics.test_doctor import test_doctor
 from devaid.diagnostics.workflows import workflow_doctor
 from devaid.plugins import discover_analyzer_plugins, run_analyzer_plugin
+from devaid.settings import create_default_config
 
 app = typer.Typer(
     name="devaid",
@@ -74,6 +76,49 @@ app.command(name="package-doctor")(package_doctor)
 app.command(name="python-doctor")(python_doctor)
 app.command(name="javascript-doctor")(javascript_doctor)
 app.command(name="report")(report)
+
+
+@app.command(name="config-init")
+def config_init(path: Path = Path(".")) -> None:
+    """Create a starter .devaid.toml diagnostic profile."""
+    try:
+        config_path = create_default_config(path)
+    except (FileExistsError, NotADirectoryError, OSError) as error:
+        console.print(f"[bold red]Could not create config:[/bold red] {error}")
+        raise typer.Exit(code=1) from error
+    console.print(f"[green]Created {config_path}[/green]")
+    console.print("Edit [doctor].skip to disable selected full-doctor checks.")
+
+
+@app.command()
+def dashboard(path: Path = Path(".")) -> None:
+    """Open an interactive terminal menu for common DevAid diagnostics."""
+    if not path.exists() or not path.is_dir():
+        console.print("[bold red]Error:[/bold red] Invalid project directory.")
+        raise typer.Exit(code=1)
+
+    choices = ["analyze", "doctor", "security", "docker", "workflows", "quit"]
+    console.print("[bold cyan]DevAid interactive dashboard[/bold cyan]")
+    console.print(f"Project: {path.resolve()}")
+    while True:
+        choice = Prompt.ask(
+            "Choose a task",
+            choices=choices,
+            default="doctor",
+        )
+        if choice == "quit":
+            console.print("Dashboard closed.")
+            break
+        if choice == "analyze":
+            analyze_project(path)
+        elif choice == "doctor":
+            run_doctor(path)
+        elif choice == "security":
+            check_security(path)
+        elif choice == "docker":
+            docker_doctor(path)
+        elif choice == "workflows":
+            workflow_doctor(path)
 
 
 @app.command(name="plugins")
