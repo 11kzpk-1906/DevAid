@@ -65,5 +65,7 @@ def create_default_config(project_path: Path) -> Path:
     if not project_path.exists() or not project_path.is_dir():
         raise NotADirectoryError(f"Invalid project directory: {project_path}")
     config_path = project_path / CONFIG_NAME
+    if config_path.exists():
+        raise FileExistsError(f"{config_path} already exists; refusing to overwrite it.")
     config_path.write_text(DEFAULT_CONFIG, encoding="utf-8", newline="\n")
     return config_path
