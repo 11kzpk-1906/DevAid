@@ -146,18 +146,19 @@ The project is being developed incrementally:
 - [x] Add HTML accessibility hygiene checks.
 - [x] Add GitHub Actions workflow hygiene checks in the CLI.
 - [x] Add Dockerfile and Docker Compose hygiene checks in the CLI.
-- [ ] Expand CLI language and framework coverage based on real-world feedback.
+- [x] Add initial CLI language detection for PHP, Ruby, Dart, Swift, Elixir, Kotlin, C#/.NET, and C/C++.
 - [x] Add a static browser-tools MVP (JSON Inspector and Regex Tester).
 - [x] Add a static documentation landing page.
 - [x] Add package-manager, Python, and JavaScript diagnostics plus Markdown/JSON report export.
+- [x] Add interactive CLI dashboard, custom diagnostic profiles, and analyzer plugin extension points.
 - [x] Add browser-native URL encoding and decoding.
 - [x] Add a local line-based Text Diff tool.
 - [x] Add YAML validation and formatting in the browser.
 - [x] Add a heuristic Docker Compose checker in the browser.
 - [x] Add a browser-based GitHub Actions workflow checker.
 - [x] Add a public GitHub Repository Health Checker.
-- [ ] Expand language and package-manager coverage based on real-world feedback.
-- [ ] Add more browser-native tools and contributor examples.
+- [x] Expand initial language and package-manager detection across common ecosystems.
+- [x] Add repository intelligence, productivity, and project-diagnostic browser tools.
 
 Features will be marked complete only when they are implemented, documented, and tested. The web tools are static browser utilities; the full web platform remains a future direction.
 
