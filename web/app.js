@@ -166,3 +166,129 @@ el("clear-compose").addEventListener("click",()=>{
   el("compose-input").value="";el("compose-findings").replaceChildren();el("compose-summary").textContent="";
   el("compose-status").textContent="Cleared.";el("compose-status").style.color="var(--muted)";
 });
+
+
+// GitHub Actions workflow review: heuristic checks over parsed YAML.
+function inspectWorkflow(workflow){
+  const findings=[];
+  const add=(level,path,message)=>findings.push({level,path,message});
+  if(!workflow||typeof workflow!=="object"||Array.isArray(workflow)){
+    add("ERROR","<root>","The workflow document must be a YAML mapping.");
+    return findings;
+  }
+  const triggers=workflow.on??workflow.true;
+  if(triggers===undefined)add("ERROR","on","No workflow trigger was found. Add push, pull_request, workflow_dispatch, or another event.");
+  else if(Array.isArray(triggers)&&triggers.length===0)add("WARN","on","The workflow trigger list is empty.");
+  if(!workflow.jobs||typeof workflow.jobs!=="object"||Array.isArray(workflow.jobs)){
+    add("ERROR","jobs","A top-level jobs mapping is required.");
+    return findings;
+  }
+  const jobs=Object.entries(workflow.jobs);
+  if(!jobs.length)add("ERROR","jobs","Define at least one job.");
+  const globalPermissions=workflow.permissions;
+  const hasGlobalPermissions=globalPermissions!==undefined;
+  if(!hasGlobalPermissions)add("WARN","permissions","No workflow-level permissions are declared. Add least-privilege permissions at workflow or job level.");
+  if(globalPermissions==="write-all")add("ERROR","permissions","write-all grants broad token permissions. Use explicit least-privilege permissions.");
+  else if(globalPermissions==="read-all")add("INFO","permissions","read-all is broad; consider declaring only the scopes the workflow needs.");
+  for(const [jobName,job] of jobs){
+    const base="jobs."+jobName;
+    if(!job||typeof job!=="object"||Array.isArray(job)){
+      add("ERROR",base,"Each job must be a mapping.");
+      continue;
+    }
+    if(!job["runs-on"]&&!job.uses)add("ERROR",base,"A job needs runs-on or a reusable-workflow uses reference.");
+    if(!job.steps&&!job.uses)add("ERROR",base+".steps","A regular job must define a steps list.");
+    if(job.steps!==undefined&&!Array.isArray(job.steps))add("ERROR",base+".steps","Steps must be a YAML list.");
+    if(job.timeout-minutes===undefined)add("WARN",base+".timeout-minutes","Set a job timeout-minutes value to prevent stuck jobs from running indefinitely.");
+    if(job.permissions==="write-all")add("ERROR",base+".permissions","write-all grants broad token permissions. Use explicit least-privilege permissions.");
+    else if(job.permissions===undefined&&!hasGlobalPermissions)add("WARN",base+".permissions","This job inherits the default token permissions. Declare the minimum required permissions.");
+    if(job.permissions&&typeof job.permissions==="object"&&!Array.isArray(job.permissions)){
+      for(const [scope,permission] of Object.entries(job.permissions)){
+        if(permission==="write-all")add("ERROR",base+".permissions."+scope,"Avoid write-all permissions.");
+      }
+    }
+    if(Array.isArray(job.steps)){
+      job.steps.forEach((step,index)=>{
+        const stepPath=base+".steps["+index+"]";
+        if(!step||typeof step!=="object"||Array.isArray(step)){
+          add("ERROR",stepPath,"Each step must be a mapping.");
+          return;
+        }
+        if(!step.uses&&!step.run)add("ERROR",stepPath,"A step needs either uses or run.");
+        if(step.uses&&step.run)add("WARN",stepPath,"A step normally uses either uses or run, not both.");
+        if(typeof step.uses==="string"){
+          const uses=step.uses;
+          if(uses.startsWith("./")||uses.startsWith("docker://")) {
+            // Local and Docker actions do not use the same remote SHA pinning convention.
+          } else if(uses.includes("@")){
+            const ref=uses.slice(uses.lastIndexOf("@")+1);
+            if(!/^[a-f0-9]{40}$/i.test(ref))add("WARN",stepPath+".uses","Pin third-party actions to a full 40-character commit SHA; a version tag can move.");
+          } else add("ERROR",stepPath+".uses","Action reference is missing a version or commit SHA.");
+        }
+        const runText=typeof step.run==="string"?step.run:"";
+        const untrustedContexts=["github.event.pull_request.title","github.event.pull_request.body","github.event.pull_request.head.ref","github.event.issue.title","github.event.issue.body","github.event.comment.body"];
+        for(const context of untrustedContexts){
+          if(runText.includes("${{ "+context+" }}")||runText.includes("${{"+context+"}}")){
+            add("ERROR",stepPath+".run","Potential script injection: untrusted event data is interpolated directly into a run command. Pass it through an environment variable and validate it.");
+            break;
+          }
+        }
+      });
+    }
+  }
+  const eventNames=Array.isArray(triggers)?triggers:Object.keys(triggers&&typeof triggers==="object"?triggers:{});
+  if(eventNames.includes("pull_request_target")){
+    add("WARN","on.pull_request_target","This event runs with elevated trust for pull requests from forks. Avoid checking out or executing untrusted pull-request code.");
+    for(const [jobName,job] of jobs){
+      if(!Array.isArray(job?.steps))continue;
+      job.steps.forEach((step,index)=>{
+        if(typeof step?.uses==="string"&&step.uses.startsWith("actions/checkout")&&String(step.with?.ref||"").includes("github.event.pull_request.head")){
+          add("ERROR","jobs."+jobName+".steps["+index+"].with.ref","This checks out pull-request head code in a pull_request_target workflow. Do not execute untrusted fork code in this privileged context.");
+        }
+      });
+    }
+  }
+  if(!findings.length)add("PASS","<root>","No common workflow issues found by these checks.");
+  return findings;
+}
+function renderWorkflowFindings(findings){
+  const output=el("workflow-findings");output.replaceChildren();
+  const counts={ERROR:0,WARN:0,INFO:0,PASS:0};
+  for(const finding of findings){
+    counts[finding.level]++;
+    const row=document.createElement("div");
+    row.className="diff-line "+(finding.level==="ERROR"?"removed":finding.level==="WARN"?"added":"same");
+    const marker=document.createElement("span");marker.className="diff-marker";marker.textContent=finding.level;
+    const content=document.createElement("span");content.className="diff-content";content.textContent=finding.path+" — "+finding.message;
+    row.append(marker,content);output.append(row);
+  }
+  el("workflow-summary").textContent=counts.ERROR+" errors · "+counts.WARN+" warnings · "+counts.INFO+" info · "+counts.PASS+" pass";
+}
+let latestWorkflowReport="";
+el("check-workflow").addEventListener("click",()=>{
+  try{
+    if(!window.jsyaml)throw new Error("The YAML parser could not load. Check your internet connection and refresh.");
+    const workflow=window.jsyaml.load(el("workflow-input").value,{schema:window.jsyaml.DEFAULT_SCHEMA});
+    const findings=inspectWorkflow(workflow);
+    renderWorkflowFindings(findings);
+    latestWorkflowReport=findings.map(item=>"["+item.level+"] "+item.path+" — "+item.message).join("\n");
+    const errors=findings.filter(item=>item.level==="ERROR").length;
+    el("workflow-status").textContent="Analysis complete. "+errors+" error(s) found.";
+    el("workflow-status").style.color=errors?"#ff9999":"var(--green)";
+  }catch(error){
+    const findings=[{level:"ERROR",path:"YAML",message:error.message}];
+    renderWorkflowFindings(findings);
+    latestWorkflowReport="[ERROR] YAML — "+error.message;
+    el("workflow-status").textContent="Could not analyze this workflow.";
+    el("workflow-status").style.color="#ff9999";
+  }
+});
+el("clear-workflow").addEventListener("click",()=>{
+  el("workflow-input").value="";el("workflow-findings").replaceChildren();el("workflow-summary").textContent="";
+  el("workflow-status").textContent="Cleared.";el("workflow-status").style.color="var(--muted)";latestWorkflowReport="";
+});
+el("copy-workflow-report").addEventListener("click",async()=>{
+  if(!latestWorkflowReport)return;
+  try{await navigator.clipboard.writeText(latestWorkflowReport);el("workflow-status").textContent="Workflow report copied.";}
+  catch{el("workflow-status").textContent="Clipboard unavailable in this browser.";}
+});
