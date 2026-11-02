@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import pytest
-
 from devaid.settings import create_default_config, load_skipped_checks
 
 

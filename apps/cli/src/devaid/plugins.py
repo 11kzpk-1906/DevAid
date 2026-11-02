@@ -3,7 +3,6 @@
 from importlib.metadata import EntryPoint, entry_points
 from pathlib import Path
 
-
 PLUGIN_GROUP = "devaid.analyzers"
 
 
