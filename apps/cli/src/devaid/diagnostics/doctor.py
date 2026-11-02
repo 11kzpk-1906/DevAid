@@ -87,7 +87,7 @@ def run_doctor(path: Path) -> None:
 
     console.print(Rule("[bold green]Full Doctor complete[/bold green]"))
     console.print(
-        f"\n[bold]Final summary:[/bold] {completed}/{len(checks)} diagnostic reports "
+        f"\n[bold]Final summary:[/bold] {completed}/{len(active_checks)} diagnostic reports "
         "completed; prioritized fix suggestions generated."
     )
     console.print(
