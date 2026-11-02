@@ -297,3 +297,128 @@ el("copy-workflow-report").addEventListener("click",async()=>{
   try{await navigator.clipboard.writeText(latestWorkflowReport);el("workflow-status").textContent="Workflow report copied.";}
   catch{el("workflow-status").textContent="Clipboard unavailable in this browser.";}
 });
+
+
+// Public GitHub repository health scan. Read-only; no token or backend.
+let latestRepositoryReport="";
+function repositoryFinding(level,path,message){
+  return {level,path,message};
+}
+async function githubGet(url){
+  const response=await fetch(url,{headers:{
+    Accept:"application/vnd.github+json",
+    "X-GitHub-Api-Version":"2022-11-28"
+  }});
+  if(!response.ok){
+    const error=new Error("GitHub API returned HTTP "+response.status+" for "+url.split("/repos/").pop());
+    error.status=response.status;
+    throw error;
+  }
+  return response.json();
+}
+function parseRepositoryUrl(value){
+  let parsed;
+  try{parsed=new URL(value.trim());}catch{throw new Error("Enter a valid GitHub repository URL.");}
+  if(parsed.hostname!=="github.com")throw new Error("Only github.com repository URLs are supported.");
+  const parts=parsed.pathname.split("/").filter(Boolean);
+  if(parts.length!==2)throw new Error("Use a repository URL in the form https://github.com/owner/repository.");
+  const owner=parts[0],name=parts[1].replace(/\.git$/i,"");
+  if(!/^[A-Za-z0-9-]+$/.test(owner)||!/^[-_.A-Za-z0-9]+$/.test(name))throw new Error("The repository URL contains an invalid owner or repository name.");
+  return {owner,name,fullName:owner+"/"+name};
+}
+async function inspectPublicRepository(owner,name){
+  const base="https://api.github.com/repos/"+encodeURIComponent(owner)+"/"+encodeURIComponent(name);
+  const metadata=await githubGet(base);
+  const findings=[];
+  const add=(level,path,message)=>findings.push(repositoryFinding(level,path,message));
+  if(metadata.private)add("INFO","visibility","This repository is private. Public-file checks may be limited.");
+  else add("PASS","visibility","Repository is publicly accessible.");
+  if(metadata.description)add("PASS","description","Repository has a description.");
+  else add("WARN","description","Add a short repository description so visitors can quickly understand its purpose.");
+  if(metadata.license?.spdx_id&&metadata.license.spdx_id!=="NOASSERTION")add("PASS","license","License detected: "+metadata.license.spdx_id+".");
+  else add("WARN","license","No recognized repository license was detected. Add a LICENSE file to clarify reuse permissions.");
+  if(metadata.has_issues)add("PASS","issues","GitHub Issues are enabled.");
+  else add("INFO","issues","GitHub Issues are disabled.");
+  if(metadata.archived)add("WARN","archived","This repository is archived and read-only.");
+  if(metadata.default_branch)add("PASS","default_branch","Default branch: "+metadata.default_branch+".");
+  if(Array.isArray(metadata.topics)&&metadata.topics.length)add("PASS","topics","Repository topics are configured ("+metadata.topics.length+").");
+  else add("INFO","topics","Consider adding repository topics to improve discoverability.");
+  const checks=[
+    ["README.md","README","A README explains the project's purpose and how to get started."],
+    ["CONTRIBUTING.md","CONTRIBUTING","Contribution guidance helps new contributors make useful changes."],
+    ["CODE_OF_CONDUCT.md","CODE_OF_CONDUCT","A code of conduct sets expectations for community participation."],
+    ["SECURITY.md","SECURITY","A security policy explains how to report vulnerabilities responsibly."]
+  ];
+  const results=await Promise.all(checks.map(async([path,label,description])=>{
+    try{await githubGet(base+"/contents/"+path);return {path,label,description,exists:true};}
+    catch(error){if(error.status===404)return {path,label,description,exists:false};throw error;}
+  }));
+  for(const item of results){
+    if(item.exists)add("PASS",item.path,item.label+" file found.");
+    else add(item.path==="README.md"||item.path==="SECURITY.md"?"WARN":"INFO",item.path,"No "+item.path+" file found. "+item.description);
+  }
+  const directoryChecks=[
+    [".github/ISSUE_TEMPLATE","issue_templates","Issue templates make bug reports and feature requests easier to submit."],
+    [".github/workflows","workflows","GitHub Actions workflows provide automated checks."]
+  ];
+  const directories=await Promise.all(directoryChecks.map(async([path,key,description])=>{
+    try{
+      const value=await githubGet(base+"/contents/"+path);
+      const count=Array.isArray(value)?value.filter(item=>item.type==="file"&&item.name.endsWith(".yml")||item.type==="file"&&item.name.endsWith(".yaml")).length:0;
+      return {path,key,description,exists:Array.isArray(value)&&value.length>0,count};
+    }catch(error){if(error.status===404)return {path,key,description,exists:false,count:0};throw error;}
+  }));
+  for(const item of directories){
+    if(item.exists)add("PASS",item.path,item.key==="workflows"?"Workflow directory found ("+item.count+" YAML workflow file(s)).":"Issue template directory found.");
+    else add("INFO",item.path,"No "+item.key.replace("_"," ")+" were detected. "+item.description);
+  }
+  add("INFO","branch_protection","Branch protection cannot be reliably inspected through the unauthenticated public API. Check repository Settings → Rules separately.");
+  add("INFO","security_settings","Private security settings (such as secret scanning and Dependabot alert configuration) are not exposed by this public scan.");
+  if(metadata.fork)add("INFO","fork","This repository is a fork; review whether upstream changes should be synchronized.");
+  return {metadata,findings};
+}
+function renderRepositoryFindings(findings){
+  const output=el("repository-findings");output.replaceChildren();
+  const counts={ERROR:0,WARN:0,INFO:0,PASS:0};
+  for(const finding of findings){
+    counts[finding.level]++;
+    const row=document.createElement("div");
+    row.className="diff-line "+(finding.level==="ERROR"||finding.level==="WARN"?"removed":finding.level==="PASS"?"same":"added");
+    const marker=document.createElement("span");marker.className="diff-marker";marker.textContent=finding.level;
+    const content=document.createElement("span");content.className="diff-content";content.textContent=finding.path+" — "+finding.message;
+    row.append(marker,content);output.append(row);
+  }
+  el("repository-summary").textContent=counts.ERROR+" errors · "+counts.WARN+" warnings · "+counts.INFO+" info · "+counts.PASS+" pass";
+}
+el("scan-repository").addEventListener("click",async()=>{
+  const button=el("scan-repository");
+  button.disabled=true;el("repository-status").textContent="Scanning public repository metadata and files…";
+  el("repository-status").style.color="var(--muted)";
+  el("repository-findings").replaceChildren();el("repository-summary").textContent="";latestRepositoryReport="";
+  try{
+    const target=parseRepositoryUrl(el("repo-url").value);
+    const result=await inspectPublicRepository(target.owner,target.name);
+    renderRepositoryFindings(result.findings);
+    latestRepositoryReport="# Repository health report: "+target.fullName+"\n\n"+
+      result.findings.map(item=>"["+item.level+"] "+item.path+" — "+item.message).join("\n");
+    const warnings=result.findings.filter(item=>item.level==="WARN").length;
+    el("repository-status").textContent="Scan complete for "+target.fullName+". "+warnings+" warning(s) found.";
+    el("repository-status").style.color=warnings?"#ff9999":"var(--green)";
+  }catch(error){
+    const message=error.status===403?"GitHub API rate limit or access restriction. Try again later.":error.status===404?"Repository not found or not publicly accessible.":error.message;
+    const findings=[repositoryFinding("ERROR","scan",message)];
+    renderRepositoryFindings(findings);latestRepositoryReport="[ERROR] scan — "+message;
+    el("repository-status").textContent="Repository scan could not be completed.";
+    el("repository-status").style.color="#ff9999";
+  }finally{button.disabled=false;}
+});
+el("clear-repository").addEventListener("click",()=>{
+  el("repo-url").value="";el("repository-findings").replaceChildren();el("repository-summary").textContent="";
+  el("repository-status").textContent="Enter a public GitHub repository URL to begin.";
+  el("repository-status").style.color="var(--muted)";latestRepositoryReport="";
+});
+el("copy-repository-report").addEventListener("click",async()=>{
+  if(!latestRepositoryReport)return;
+  try{await navigator.clipboard.writeText(latestRepositoryReport);el("repository-status").textContent="Repository report copied.";}
+  catch{el("repository-status").textContent="Clipboard unavailable in this browser.";}
+});
