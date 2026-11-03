@@ -3,46 +3,91 @@
 <p align="center">
   <strong>Build better. Debug smarter. Ship confidently.</strong>
   <br />
-  An open-source, local-first toolkit that helps developers solve everyday development problems.
+  A free, open-source, local-first toolkit for everyday developer workflows.
 </p>
 
 <p align="center">
-  <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg" />
-  <img alt="Open source" src="https://img.shields.io/badge/Open%20Source-Community%20Driven-brightgreen" />
-  <img alt="Cost" src="https://img.shields.io/badge/Core%20Tools-Free-2ea44f" />
-  <img alt="Status" src="https://img.shields.io/badge/Status-Early%20Development-orange" />
+  <a href="https://github.com/11kzpk-1906/DevAid/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/11kzpk-1906/DevAid?display_name=tag" /></a>
+  <a href="https://github.com/11kzpk-1906/DevAid/blob/main/LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/License-MIT-blue.svg" /></a>
+  <img alt="Free core tools" src="https://img.shields.io/badge/Core%20Tools-Free-2ea44f" />
+  <a href="https://github.com/11kzpk-1906/DevAid/actions"><img alt="CI" src="https://github.com/11kzpk-1906/DevAid/actions/workflows/cli-tests.yml/badge.svg" /></a>
 </p>
 
 ---
 
 ## What is DevAid?
 
-**DevAid is a free, open-source developer toolkit with a web platform and command-line interface (CLI).** Its goal is to make common development tasks easier to understand and troubleshoot—whether you're learning to code, maintaining a production application, or contributing to open source.
+**DevAid helps developers understand, inspect, and improve their projects without depending on a paid cloud service or an AI API.**
 
-The project is being designed around practical diagnostics rather than requiring every task to go through an AI chatbot. Core tools should work locally wherever possible, with AI treated as an optional enhancement—not a requirement.
+It brings together a Python command-line interface (CLI) and a collection of static browser tools. The CLI focuses on local project diagnostics, while the browser tools help with common development tasks such as inspecting JSON, comparing text, checking configuration, and understanding Git commands.
 
-> **Project status:** The Python CLI is actively being built, with offline diagnostics and automated tests. The web platform is a static browser-tools MVP. See the implemented commands and tools below.
+DevAid is designed to be useful without AI. Local-first behavior is preferred, and network access is limited to features that explicitly need it.
 
-## Our goals
+## Highlights
 
-- **Free by design:** Keep the core experience usable without paid APIs or subscriptions.
-- **Local-first:** Prefer running diagnostics on the developer's own machine.
-- **Privacy-conscious:** Do not upload source code, logs, or project files without clear user consent.
-- **Useful without AI:** Build deterministic tools first; make AI integrations optional.
-- **Developer-friendly:** Support different experience levels, languages, and workflows.
-- **Open to everyone:** Welcome contributions, feedback, bug reports, and ideas.
+- **Local-first diagnostics:** inspect project structure, configuration, dependencies, tests, security hygiene, and more.
+- **Cross-platform releases:** downloadable CLI bundles for Windows x64, Linux x64, and macOS ARM64.
+- **Browser utilities:** use practical tools directly in your browser.
+- **No paid API required:** core functionality does not depend on a subscription or paid AI service.
+- **Open source:** inspect the code, report issues, and contribute improvements.
 
-## Available CLI tools
+## Download DevAid
 
-The following commands are implemented in the Python CLI. Most diagnostics are read-only and run locally.
+The latest stable release is **v0.1.0**.
 
-| Command | What it does |
+**[Download DevAid v0.1.0](https://github.com/11kzpk-1906/DevAid/releases/tag/v0.1.0)**
+
+| Platform | Release asset | Architecture |
+| --- | --- | --- |
+| Windows | `devaid-windows-x64.zip` | x64 |
+| Linux | `devaid-linux-x64.zip` | x64 |
+| macOS | `devaid-macos-arm64.zip` | Apple Silicon (ARM64) |
+
+### Run the standalone CLI
+
+1. Download the ZIP for your operating system from the release page.
+2. Extract the ZIP to a folder.
+3. Open a terminal in the extracted folder.
+4. Run the executable:
+
+**Windows (PowerShell):**
+```powershell
+.\devaid.exe --help
+.\devaid.exe version
+.\devaid.exe doctor .
+```
+
+**Linux:**
+```bash
+chmod +x ./devaid
+./devaid --help
+./devaid version
+./devaid doctor .
+```
+
+**macOS (Apple Silicon):**
+```bash
+chmod +x ./devaid
+./devaid --help
+./devaid version
+./devaid doctor .
+```
+
+If your shell cannot find the executable, run it from the extracted directory using the relative path shown above. You can optionally add that directory to your PATH.
+
+> **Platform note:** the published bundles target Windows x64, Linux x64, and macOS ARM64. The macOS bundle is for Apple Silicon; Intel Mac support is not currently listed as a release target.
+
+## Available CLI commands
+
+Run `devaid --help` to see the commands available in your installed version. Commands that accept a project path generally use the current directory when you pass `.`.
+
+| Command | Purpose |
 | --- | --- |
-| `devaid version` | Display the installed DevAid version. |
+| `devaid version` | Display the installed version. |
 | `devaid explain` | Explain supported programming errors and suggest troubleshooting steps. |
 | `devaid analyze PATH` | Identify project languages, frameworks, and package managers. |
 | `devaid deps PATH` | Inspect dependency manifests offline. |
-| `devaid doctor PATH` | Run the complete set of local project diagnostics and prioritized suggestions. |
+| `devaid doctor PATH` | Run the full set of local project diagnostics. |
 | `devaid suggest PATH` | Recommend practical project setup improvements. |
 | `devaid test-doctor PATH` | Check test and CI readiness without running the test suite. |
 | `devaid git PATH` | Review Git repository state without changing it. |
@@ -67,11 +112,13 @@ The following commands are implemented in the Python CLI. Most diagnostics are r
 | `devaid dashboard PATH` | Open an interactive terminal menu for common diagnostics. |
 | `devaid config-init PATH` | Create a starter `.devaid.toml` diagnostic profile. |
 
-Run `devaid --help` or `devaid COMMAND --help` for command-specific options. Commands that accept a project path generally use the current directory when you pass `.`.
+Use `devaid COMMAND --help` for command-specific options.
 
-### Install and run from source
+## Install and run from source
 
-Requirements: Python 3.11 or newer and [uv](https://docs.astral.sh/uv/).
+For contributors or users who prefer running DevAid from Python:
+
+**Requirements:** Python 3.11 or newer and [uv](https://docs.astral.sh/uv/).
 
 ```bash
 git clone https://github.com/11kzpk-1906/DevAid.git
@@ -81,110 +128,140 @@ uv run devaid --help
 uv run devaid doctor .
 ```
 
-For development checks:
+Run the development checks:
 
 ```bash
 uv run ruff check .
 uv run pytest
 ```
 
-### Web tools
+## Browser tools
 
-The static browser-tools MVP in `web/` includes a JSON Inspector, Regex Tester, URL Encoder / Decoder, line-based Text Diff, a YAML Validator, a Docker Compose Checker, a GitHub Actions Workflow Checker, a GitHub Repository Health Checker, a Repository Topics Analyzer, a Repository Scorecard, a README Analyzer, a Git Command Explainer, a `.gitignore` Generator, a Changelog Generator, a Commit Message Assistant, a Markdown Previewer, a License Notes Guide, a Dependency Manifest Checker, an Environment Template Doctor, an API Response Inspector, and a Dockerfile Analyzer. Most tools process input in the browser tab; no project source files are uploaded and no backend is required. The Repository Health Checker makes read-only requests to GitHub's public API. The Dependency Manifest Checker is not a vulnerability scanner; the License Notes Guide is not legal advice; the API Response Inspector does not send requests; and Dockerfile / Compose checks are heuristic rather than authoritative validators. The Repository Health Checker recognizes root-level documentation files and common alternatives such as `.github/SECURITY.md`, `.github/CONTRIBUTING.md`, `docs/CONTRIBUTING.md`, and `.github/CODE_OF_CONDUCT.md`. Text Diff uses a bounded local comparison. YAML tools use the open-source js-yaml parser loaded from jsDelivr; YAML content is parsed in the browser and is not uploaded. An internet connection is required to load the parser.
+The static browser-tools MVP in `web/` includes:
 
-- Open browser tools from the repository's `web/` directory.
-- Read the static documentation in `docs/`.
-- Both can be hosted as static files without a paid backend or database.
-- The browser MVP does not execute the Python CLI or inspect local project folders.
+- JSON Inspector and Regex Tester
+- URL Encoder / Decoder and line-based Text Diff
+- YAML Validator
+- Docker Compose Checker and Dockerfile Analyzer
+- GitHub Actions Workflow Checker
+- GitHub Repository Health Checker, Topics Analyzer, and Repository Scorecard
+- README Analyzer and Markdown Previewer
+- Git Command Explainer and `.gitignore` Generator
+- Changelog Generator and Commit Message Assistant
+- License Notes Guide
+- Dependency Manifest Checker
+- Environment Template Doctor
+- API Response Inspector
 
-## Technology direction
+Most tools process input in the browser tab. No backend is required, and project source files are not uploaded by these tools. The Repository Health Checker makes read-only requests to GitHub's public API. YAML parsing uses the open-source js-yaml parser loaded from jsDelivr, so an internet connection is needed for that tool.
 
-The CLI project analyzer recognizes Python, Node.js, Rust, Go, Java, Kotlin, PHP, Ruby, Dart, Swift, Elixir, C#/.NET, and C/C++ project markers. Package-manager detection includes common Python, JavaScript, Rust, Go, PHP, Ruby, Dart, Swift, Elixir, Gradle, and NuGet lockfiles. Detection is based on filenames and manifest text, so mixed-language projects may report multiple languages.\n\n### Custom diagnostic configuration\n\nRun `devaid config-init .` to create `.devaid.toml` without overwriting an existing file. The starter file supports a `[doctor]` table with a `skip` array of diagnostic keys, for example:\n\n```toml\n[doctor]\nskip = ["accessibility", "performance"]\n```\n\nSupported keys: `health`, `dependencies`, `configuration`, `deployment`, `documentation`, `security`, `tests`, `git`, `release`, `performance`, `accessibility`, `workflows`, `docker`, `packages`, `python`, `javascript`, and `environment`. The full doctor validates the configuration before running. This setting only skips selected reports; it does not change the underlying diagnostic rules.\n\n### Analyzer plugin extension point\n\nDevAid supports optional Python analyzer plugins through the `devaid.analyzers` entry-point group. A plugin is a callable that accepts one `pathlib.Path` argument and performs its own analysis. Register it in your package metadata, for example:\n\n```toml\n[project.entry-points."devaid.analyzers"]\nmy-check = "my_package.devaid_plugin:analyze"\n```\n\nThe callback should accept a project path and print or otherwise present its findings. Use `devaid plugins` to list installed plugin names and `devaid plugin-run my-check .` to run one explicitly. Listing plugins reads entry-point metadata only; the plugin module is imported only when selected. Third-party plugins are executable Python code and should be installed only from sources you trust.\n\nThe current CLI implementation uses Python and Typer. The planned web platform is expected to use:
+**Limitations:** the Dependency Manifest Checker is not a vulnerability scanner; the License Notes Guide is not legal advice; the API Response Inspector does not send requests; and Dockerfile / Compose checks are heuristic rather than authoritative validators. The browser MVP does not execute the Python CLI or inspect local project folders.
 
-- **Web:** React, TypeScript, and Tailwind CSS
-- **CLI:** Python and Typer (implemented)
-- **Optional API:** Python and FastAPI, only where a hosted service is genuinely needed
-- **Local data:** Files and lightweight local storage where practical
-- **Testing:** Automated tests and CI checks
+To use the browser tools, open the files in the repository's `web/` directory. The tools and documentation can be hosted as static files.
 
-These are planned choices and may evolve as the architecture is validated.
+## Technology
 
-## Zero-cost operating principles
+- **CLI:** Python and Typer
+- **Terminal output:** Rich
+- **Packaging:** Hatchling
+- **Development tooling:** uv, Ruff, and pytest
+- **Browser utilities:** HTML, CSS, and JavaScript
 
-DevAid aims to keep its development and core usage at **zero mandatory cost**:
+The CLI recognizes project markers for Python, Node.js, Rust, Go, Java, Kotlin, PHP, Ruby, Dart, Swift, Elixir, C#/.NET, and C/C++. Package-manager detection covers common ecosystems and their manifest or lock files. Detection is based on project files and manifest text; mixed-language projects may be identified as using multiple languages.
+
+## Custom diagnostic configuration
+
+Run `devaid config-init .` to create a `.devaid.toml` starter profile without overwriting an existing file.
+
+Example:
+
+```toml
+[doctor]
+skip = ["accessibility", "performance"]
+```
+
+The full doctor validates the configuration before running. Supported skip keys include health, dependencies, configuration, deployment, documentation, security, tests, Git, release, performance, accessibility, workflows, Docker, packages, Python, JavaScript, and environment. Skipping a report does not change the underlying diagnostic rules.
+
+## Analyzer plugins
+
+DevAid supports optional Python analyzer plugins through the `devaid.analyzers` entry-point group.
+
+Example package metadata:
+
+```toml
+[project.entry-points."devaid.analyzers"]
+my-check = "my_package.devaid_plugin:analyze"
+```
+
+The plugin callback accepts a project path. Use `devaid plugins` to list installed plugin names and `devaid plugin-run my-check .` to run one explicitly. Listing plugins reads entry-point metadata only; a plugin module is imported only when selected.
+
+> Third-party plugins are executable Python code. Install plugins only from sources you trust.
+
+## Zero-cost principles
+
+DevAid aims to keep core development and usage free:
 
 - No required paid AI API.
 - No required paid hosting or database.
-- No subscription required for core local tools.
+- No subscription for core local tools.
 - Prefer free and open-source dependencies.
 - Avoid infrastructure when a local implementation is sufficient.
 
-Third-party services may have their own limits or change their free offerings. DevAid should not depend on a paid service to deliver its essential local functionality.
+Third-party services may have their own limits or change their free offerings. Essential local functionality should not depend on a paid service.
 
 ## Privacy and security
 
-Developer projects can contain credentials, private source code, customer data, and other sensitive information. DevAid should handle that material carefully.
+Developer projects may contain credentials, private source code, customer data, and other sensitive information. DevAid is designed to favor local analysis and make network activity understandable.
 
-- Local analysis is the default design preference.
-- Never print or transmit secrets unnecessarily.
+- Avoid printing or transmitting secrets unnecessarily.
 - Redact sensitive values from diagnostic output where feasible.
-- Make any network access explicit and understandable.
+- Make network access explicit.
 - Ask for informed consent before sending project data to an external service.
-- Treat security findings as guidance that should be verified, not as a guarantee that a project is secure.
+- Treat findings as guidance to verify, not as a guarantee that a project is secure.
 
-Please do not submit real credentials, access tokens, private keys, or confidential project data in issues or discussions.
+Please do not include real credentials, access tokens, private keys, or confidential project data in issues or discussions.
 
 ## Roadmap
 
-The project is being developed incrementally:
+DevAid is being developed incrementally. Completed work includes:
 
-- [x] Establish repository structure, contribution guidelines, and automated checks.
-- [x] Build the Python CLI foundation and command interface.
-- [x] Implement local project analysis and error explanation.
-- [x] Add offline dependency, configuration, environment, documentation, and project health checks.
-- [x] Add deployment, security, Git, release, test-readiness, and performance diagnostics.
-- [x] Add HTML accessibility hygiene checks.
-- [x] Add GitHub Actions workflow hygiene checks in the CLI.
-- [x] Add Dockerfile and Docker Compose hygiene checks in the CLI.
-- [x] Add initial CLI language detection for PHP, Ruby, Dart, Swift, Elixir, Kotlin, C#/.NET, and C/C++.
-- [x] Add a static browser-tools MVP (JSON Inspector and Regex Tester).
-- [x] Add a static documentation landing page.
-- [x] Add package-manager, Python, and JavaScript diagnostics plus Markdown/JSON report export.
-- [x] Add interactive CLI dashboard, custom diagnostic profiles, and analyzer plugin extension points.
-- [x] Add browser-native URL encoding and decoding.
-- [x] Add a local line-based Text Diff tool.
-- [x] Add YAML validation and formatting in the browser.
-- [x] Add a heuristic Docker Compose checker in the browser.
-- [x] Add a browser-based GitHub Actions workflow checker.
-- [x] Add a public GitHub Repository Health Checker.
-- [x] Expand initial language and package-manager detection across common ecosystems.
-- [x] Add repository intelligence, productivity, and project-diagnostic browser tools.
+- [x] Python CLI foundation and command interface.
+- [x] Local project analysis and supported error explanations.
+- [x] Dependency, configuration, environment, documentation, and project-health diagnostics.
+- [x] Deployment, security, Git, release, test-readiness, and performance diagnostics.
+- [x] HTML accessibility hygiene checks.
+- [x] GitHub Actions workflow and Docker / Compose hygiene checks.
+- [x] Python, JavaScript, package-manager, and multi-language project detection.
+- [x] Markdown and JSON diagnostic report export.
+- [x] Interactive CLI dashboard, custom diagnostic profiles, and analyzer plugin extension points.
+- [x] Static browser utilities for common developer workflows.
+- [x] Cross-platform binary build workflow and v0.1.0 release.
 
-Features will be marked complete only when they are implemented, documented, and tested. The web tools are static browser utilities; the full web platform remains a future direction.
+Potential next areas include smoother onboarding, update notifications, broader platform testing, and richer diagnostic explanations. Roadmap items are not promises or claims of completed functionality.
 
 ## Contributing
 
-Contributions of all sizes are welcome—from reporting a confusing error message to improving documentation or implementing a tool.
+Contributions are welcome, including bug reports, documentation improvements, tests, and new tools.
 
 Before opening a pull request:
 
-1. Check existing issues to avoid duplicate work.
-2. Describe the problem your change solves.
-3. Include tests for new behavior where practical.
+1. Check existing issues for related reports.
+2. Explain the problem your change solves.
+3. Add tests for new behavior where practical.
 4. Update documentation when commands or behavior change.
-5. Keep changes focused and avoid introducing unnecessary dependencies.
+5. Keep changes focused and avoid unnecessary dependencies.
 
-Contribution instructions will be expanded as the project structure takes shape. Please be respectful and constructive when interacting with other contributors.
+Please be respectful and constructive when interacting with other contributors. See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidance.
 
 ## Community and support
 
-- **Bug reports and feature ideas:** Use the repository's GitHub Issues.
-- **Code contributions:** Open a Pull Request with a clear explanation and relevant tests.
-- **Questions:** Start a GitHub Discussion when discussions are enabled.
+- **Bug reports and feature ideas:** [GitHub Issues](https://github.com/11kzpk-1906/DevAid/issues)
+- **Code contributions:** [Open a Pull Request](https://github.com/11kzpk-1906/DevAid/pulls)
+- **Releases and downloads:** [GitHub Releases](https://github.com/11kzpk-1906/DevAid/releases)
 
 ## License
 
-DevAid is intended to be released under the [MIT License](LICENSE). See the repository's license file for the exact terms.
+DevAid is licensed under the [MIT License](LICENSE).
 
 ---
 
