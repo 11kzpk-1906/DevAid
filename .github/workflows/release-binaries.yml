@@ -13,85 +13,82 @@ permissions:
 jobs:
   build:
     name: Build ${{ matrix.platform }}
+
     strategy:
       fail-fast: false
+
       matrix:
         include:
           - platform: windows-x64
             os: windows-latest
-            python: "3.12"
             binary: devaid.exe
             archive: devaid-windows-x64.zip
 
           - platform: linux-x64
             os: ubuntu-latest
-            python: "3.12"
             binary: devaid
             archive: devaid-linux-x64.zip
 
-          - platform: macos-arm64
+          - platform: macos
             os: macos-latest
-            python: "3.12"
             binary: devaid
-            archive: devaid-macos-arm64.zip
-
-          - platform: macos-x64
-            os: macos-15-intel
-            python: "3.12"
-            binary: devaid
-            archive: devaid-macos-x64.zip
+            archive: devaid-macos.zip
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Check out repository
+      # 1. Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      # 2. Setup Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python }}
+          python-version: "3.12"
 
+      # 3. Install uv
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Install project dependencies
+      # 4. Install project dependencies
+      - name: Install dependencies
         run: uv sync --extra dev
 
-      - name: Install PyInstaller
-        run: uv pip install --python .venv/bin/python pyinstaller
-        if: runner.os != 'Windows'
-
-      - name: Install PyInstaller on Windows
-        if: runner.os == 'Windows'
-        run: uv pip install --python .venv/Scripts/python.exe pyinstaller
-
+      # 5. Build standalone executable
       - name: Build executable
-        shell: bash
         run: |
-          uv run pyinstaller \
+          uv run --with pyinstaller pyinstaller \
             --clean \
             --noconfirm \
             --onefile \
             --name devaid \
+            --paths apps/cli/src \
             --collect-submodules devaid \
             apps/cli/src/devaid/main.py
 
+      # 6. Test executable
       - name: Test executable
         shell: bash
         run: |
+          set -e
+
+          echo "Testing DevAid executable..."
+
           ./dist/${{ matrix.binary }} --help
-          ./dist/${{ matrix.binary }} --version
+          ./dist/${{ matrix.binary }} version
 
-      - name: Prepare ZIP archive
-        shell: bash
+          echo "DevAid executable passed smoke tests."
+
+      # 7. Create ZIP archive
+      - name: Create ZIP archive
+        env:
+          BINARY: ${{ matrix.binary }}
+          ARCHIVE: ${{ matrix.archive }}
         run: |
-          mkdir -p release
-          cp "dist/${{ matrix.binary }}" "release/${{ matrix.binary }}"
-          cd release
-          7z a "../${{ matrix.archive }}" "${{ matrix.binary }}" || \
-            python -c "import shutil; shutil.make_archive('../${{ matrix.archive }}', 'zip', '.')"
+          python -c "import os, zipfile; binary=os.environ['BINARY']; archive=os.environ['ARCHIVE']; z=zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED); z.write(os.path.join('dist', binary), arcname=binary); z.close()"
 
+      # 8. Upload ZIP artifact
       - name: Upload ZIP artifact
         uses: actions/upload-artifact@v4
         with:
