@@ -2,8 +2,9 @@
 
 from pathlib import Path
 
-import typer
 import zipfile
+
+import typer
 from rich.console import Console
 from rich.prompt import Prompt
 
