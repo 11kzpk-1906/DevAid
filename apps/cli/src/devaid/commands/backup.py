@@ -35,7 +35,11 @@ def _safe_archive_path(name: str) -> PurePosixPath:
     if not name or "\\" in name:
         raise ValueError("The backup contains an unsafe file path.")
     path = PurePosixPath(name)
-    if (\n        path.is_absolute()\n        or PureWindowsPath(name).drive\n        or any(part in {"", ".", ".."} for part in path.parts)\n    ):
+    if (
+        path.is_absolute()
+        or PureWindowsPath(name).drive
+        or any(part in {"", ".", ".."} for part in path.parts)
+    ):
         raise ValueError("The backup contains an unsafe file path.")
     return path
 
