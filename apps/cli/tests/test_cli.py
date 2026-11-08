@@ -44,8 +44,6 @@ def test_backup_verify_and_restore_commands(tmp_path: Path) -> None:
 
 
 def test_snapshot_commands(tmp_path: Path) -> None:
-    from devaid.main import app
-
     before = tmp_path / "before"
     after = tmp_path / "after"
     before.mkdir()
