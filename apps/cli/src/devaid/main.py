@@ -119,7 +119,7 @@ def backup_command(
     """Create a local ZIP backup of a project, excluding common secrets and caches."""
     try:
         archive_path = backup_project(path, output)
-    except (FileExistsError, NotADirectoryError, OSError, ValueError) as error:
+    except (OSError, ValueError) as error:
         console.print(f"[bold red]Backup failed:[/bold red] {error}")
         raise typer.Exit(code=1) from error
     console.print(f"[green]Backup created:[/green] {archive_path}")
@@ -144,7 +144,7 @@ def restore_command(
     """Restore a verified backup into a new directory without overwriting files."""
     try:
         file_count = restore_backup(archive, destination)
-    except (FileExistsError, FileNotFoundError, OSError, ValueError, zipfile.BadZipFile) as error:
+    except (OSError, ValueError, zipfile.BadZipFile) as error:
         console.print(f"[bold red]Restore failed:[/bold red] {error}")
         raise typer.Exit(code=1) from error
     console.print(f"[green]Restored {file_count} files to {destination.resolve()}[/green]")
