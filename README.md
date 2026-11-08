@@ -88,7 +88,9 @@ Run `devaid --help` to see the commands available in your installed version. Com
 | `devaid update-check` | Check GitHub for the latest stable release without installing it. |
 | `devaid backup --path PATH --output FILE` | Create a local ZIP project backup, excluding common secrets and generated folders. |
 | `devaid backup-verify ARCHIVE` | Verify the backup manifest and file checksums. |
-| `devaid restore ARCHIVE --destination PATH` | Restore a verified backup into a new directory without overwriting existing files. |\n| `devaid snapshot --path PATH --output FILE` | Capture a local project snapshot with file sizes and SHA-256 hashes. |\n| `devaid snapshot-compare BEFORE AFTER` | Compare snapshots and list added, modified, deleted, and unchanged files. |
+| `devaid restore ARCHIVE --destination PATH` | Restore a verified backup into a new directory without overwriting existing files. |
+| `devaid snapshot --path PATH --output FILE` | Capture a local project snapshot with file sizes and SHA-256 hashes. |
+| `devaid snapshot-compare BEFORE AFTER` | Compare snapshots and list added, modified, deleted, and unchanged files. |
 | `devaid explain` | Explain supported programming errors and suggest troubleshooting steps. |
 | `devaid analyze PATH` | Identify project languages, frameworks, and package managers. |
 | `devaid deps PATH` | Inspect dependency manifests offline. |
