@@ -44,7 +44,8 @@ app = typer.Typer(
 
 console = Console()
 BACKUP_OUTPUT_OPTION = typer.Option(None, "--output", "-o")
-BACKUP_ARCHIVE_ARGUMENT = typer.Argument(...)
+BACKUP_VERIFY_ARCHIVE_ARGUMENT = typer.Argument(...)
+RESTORE_ARCHIVE_ARGUMENT = typer.Argument(...)
 RESTORE_DESTINATION_OPTION = typer.Option(..., "--destination", "-d")
 
 
@@ -129,7 +130,7 @@ def backup_command(
 
 
 @app.command(name="backup-verify")
-def backup_verify_command(archive: Path = BACKUP_ARCHIVE_ARGUMENT) -> None:
+def backup_verify_command(archive: Path = BACKUP_VERIFY_ARCHIVE_ARGUMENT) -> None:
     """Verify a DevAid backup manifest and every archived file checksum."""
     try:
         file_count = verify_backup(archive)
@@ -141,7 +142,7 @@ def backup_verify_command(archive: Path = BACKUP_ARCHIVE_ARGUMENT) -> None:
 
 @app.command(name="restore")
 def restore_command(
-    archive: Path = BACKUP_ARCHIVE_ARGUMENT,
+    archive: Path = RESTORE_ARCHIVE_ARGUMENT,
     destination: Path = RESTORE_DESTINATION_OPTION,
 ) -> None:
     """Restore a verified backup into a new directory without overwriting files."""
