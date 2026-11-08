@@ -33,9 +33,9 @@ DevAid is designed to be useful without AI. Local-first behavior is preferred, a
 
 ## Download DevAid
 
-The latest stable release is **v0.1.0**.
+The latest stable release is **v0.2.0**.
 
-**[Download DevAid v0.1.0](https://github.com/11kzpk-1906/DevAid/releases/tag/v0.1.0)**
+**[Download DevAid v0.2.0](https://github.com/11kzpk-1906/DevAid/releases/tag/v0.2.0)**
 
 | Platform | Release asset | Architecture |
 | --- | --- | --- |
