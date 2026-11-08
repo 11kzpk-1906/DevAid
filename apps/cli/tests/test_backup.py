@@ -5,7 +5,6 @@ import zipfile
 from pathlib import Path
 
 import pytest
-
 from devaid.commands.backup import (
     MANIFEST_NAME,
     backup_project,
