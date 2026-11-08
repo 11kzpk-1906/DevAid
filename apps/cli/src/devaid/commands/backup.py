@@ -76,6 +76,8 @@ def backup_project(source: Path, output: Path | None = None) -> Path:
             if file_path.resolve() == output:
                 continue
             relative = file_path.relative_to(source).as_posix()
+            if relative == MANIFEST_NAME:
+                continue
             files.append((relative, file_path))
 
     manifest: list[dict[str, Any]] = []
