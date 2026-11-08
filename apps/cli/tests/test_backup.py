@@ -4,14 +4,14 @@ import json
 import zipfile
 from pathlib import Path
 
-import pytest
-
 from devaid.commands.backup import (
     MANIFEST_NAME,
     backup_project,
     restore_backup,
     verify_backup,
 )
+
+import pytest
 
 
 def test_backup_excludes_generated_and_sensitive_files(tmp_path: Path) -> None:
@@ -66,18 +66,31 @@ def test_verify_detects_modified_archive_content(tmp_path: Path) -> None:
     (project / "hello.txt").write_text("hello", encoding="utf-8")
     archive = backup_project(project, tmp_path / "backup.zip")
 
-    with zipfile.ZipFile(archive, "a") as zipped:
-        zipped.writestr("hello.txt", "changed")
+    tampered_archive = tmp_path / "tampered.zip"
+    with zipfile.ZipFile(archive, "r") as original:
+        manifest_data = original.read(MANIFEST_NAME)
+    with zipfile.ZipFile(tampered_archive, "w") as tampered:
+        tampered.writestr("hello.txt", "changed")
+        tampered.writestr(MANIFEST_NAME, manifest_data)
 
-    with pytest.raises(ValueError, match="duplicate"):
-        verify_backup(archive)
+    with pytest.raises(ValueError, match="integrity"):
+        verify_backup(tampered_archive)
+
+
+EMPTY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
 
 def test_verify_rejects_path_traversal(tmp_path: Path) -> None:
     archive = tmp_path / "unsafe.zip"
     manifest = {
         "format": 1,
-        "files": [{"path": "../outside.txt", "size": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}],
+        "files": [
+            {
+                "path": "../outside.txt",
+                "size": 0,
+                "sha256": EMPTY_SHA256,
+            }
+        ],
     }
     with zipfile.ZipFile(archive, "w") as zipped:
         zipped.writestr("../outside.txt", "")
@@ -86,12 +99,17 @@ def test_verify_rejects_path_traversal(tmp_path: Path) -> None:
         verify_backup(archive)
 
 
-
 def test_verify_rejects_windows_drive_path(tmp_path: Path) -> None:
     archive = tmp_path / "windows-path.zip"
     manifest = {
         "format": 1,
-        "files": [{"path": "C:/outside.txt", "size": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}],
+        "files": [
+            {
+                "path": "C:/outside.txt",
+                "size": 0,
+                "sha256": EMPTY_SHA256,
+            }
+        ],
     }
     with zipfile.ZipFile(archive, "w") as zipped:
         zipped.writestr("C:/outside.txt", "")
