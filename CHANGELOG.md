@@ -2,6 +2,15 @@
 
 All notable changes to DevAid are documented here.
 
+## [Unreleased]
+
+### Added
+- Guided `devaid welcome` first-run menu for diagnostics, project analysis, dashboard, configuration, and help.
+- Tests for the welcome flow and invalid project paths.
+
+### Changed
+- Development branch version set to `0.2.0.dev0`; the stable `0.1.0` release remains unchanged.
+
 ## [0.1.0] - 2026-11-02
 
 ### Added
