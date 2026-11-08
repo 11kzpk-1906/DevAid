@@ -2,6 +2,18 @@
 
 All notable changes to DevAid are documented here.
 
+## [Unreleased]
+
+### Added
+- Local project snapshots with SHA-256 file fingerprints and comparison of added, modified, deleted, and unchanged files.\n- Local project ZIP backups with common secret/cache exclusions, SHA-256 integrity verification, and safe restore into a new directory.
+- `devaid update-check` checks the latest stable GitHub release without installing
+  or changing files.
+- Guided `devaid welcome` first-run menu for diagnostics, project analysis, dashboard, configuration, and help.
+- Tests for the welcome flow and invalid project paths.
+
+### Changed
+- Development branch version set to `0.2.0.dev0`; the stable `0.1.0` release remains unchanged.
+
 ## [0.1.0] - 2026-11-02
 
 ### Added
