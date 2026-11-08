@@ -32,7 +32,7 @@ def test_fetch_latest_release_reads_github_response(mock_urlopen: MagicMock) -> 
 def test_update_check_reports_newer_release(mock_urlopen: MagicMock) -> None:
     response = MagicMock()
     response.__enter__.return_value.read.return_value = (
-        b'{"tag_name":"v0.2.0","html_url":"https://example.com/release"}'
+        b'{"tag_name":"v0.3.0","html_url":"https://example.com/release"}'
     )
     mock_urlopen.return_value = response
 
