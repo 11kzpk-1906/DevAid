@@ -84,3 +84,17 @@ def test_verify_rejects_path_traversal(tmp_path: Path) -> None:
         zipped.writestr(MANIFEST_NAME, json.dumps(manifest))
     with pytest.raises(ValueError, match="unsafe"):
         verify_backup(archive)
+
+
+
+def test_verify_rejects_windows_drive_path(tmp_path: Path) -> None:
+    archive = tmp_path / "windows-path.zip"
+    manifest = {
+        "format": 1,
+        "files": [{"path": "C:/outside.txt", "size": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}],
+    }
+    with zipfile.ZipFile(archive, "w") as zipped:
+        zipped.writestr("C:/outside.txt", "")
+        zipped.writestr(MANIFEST_NAME, json.dumps(manifest))
+    with pytest.raises(ValueError, match="unsafe"):
+        verify_backup(archive)
