@@ -18,7 +18,6 @@ def test_help_command() -> None:
     assert "developer" in result.output.lower()
 
 
-
 def test_backup_verify_and_restore_commands(tmp_path: Path) -> None:
     project = tmp_path / "sample"
     project.mkdir()
