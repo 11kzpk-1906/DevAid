@@ -1,5 +1,5 @@
 from unittest.mock import MagicMock, patch
-from urllib.error import HTTPError, URLError
+from urllib.error import URLError
 
 from devaid.commands.update_checker import fetch_latest_release, version_key
 from devaid.main import app
