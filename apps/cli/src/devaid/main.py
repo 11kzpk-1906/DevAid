@@ -78,6 +78,35 @@ app.command(name="javascript-doctor")(javascript_doctor)
 app.command(name="report")(report)
 
 
+@app.command()
+def welcome(path: Path = Path(".")) -> None:
+    """Show a guided first-run menu for common DevAid tasks."""
+    if not path.exists() or not path.is_dir():
+        console.print("[bold red]Error:[/bold red] Invalid project directory.")
+        raise typer.Exit(code=1)
+
+    console.print("[bold cyan]Welcome to DevAid![/bold cyan]")
+    console.print("Build better. Debug smarter. Ship confidently.")
+    console.print(f"\nProject: [cyan]{path.resolve()}[/cyan]")
+    console.print("Choose what you would like to do first.")
+
+    choices = ["doctor", "analyze", "dashboard", "config", "help", "quit"]
+    choice = Prompt.ask("Getting started", choices=choices, default="doctor")
+
+    if choice == "doctor":
+        run_doctor(path)
+    elif choice == "analyze":
+        analyze_project(path)
+    elif choice == "dashboard":
+        dashboard(path)
+    elif choice == "config":
+        config_init(path)
+    elif choice == "help":
+        console.print(app.get_help())
+    else:
+        console.print("Welcome menu closed. Happy building!")
+
+
 @app.command(name="config-init")
 def config_init(path: Path = Path(".")) -> None:
     """Create a starter .devaid.toml diagnostic profile."""
