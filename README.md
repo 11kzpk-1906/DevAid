@@ -85,7 +85,7 @@ Run `devaid --help` to see the commands available in your installed version. Com
 | --- | --- |
 | `devaid version` | Display the installed version. |
 | `devaid welcome` (or `devaid welcome --path PATH`) | Open a guided first-run menu for common tasks. |
-| `devaid update-check` | Check GitHub for the latest stable release without installing it. |
+| `devaid update-check` | Check GitHub for the latest stable release without installing it. |\n| `devaid backup --path PATH --output FILE` | Create a local ZIP project backup, excluding common secrets and generated folders. |\n| `devaid backup-verify ARCHIVE` | Verify the backup manifest and file checksums. |\n| `devaid restore ARCHIVE --destination PATH` | Restore a verified backup into a new directory without overwriting existing files. |
 | `devaid explain` | Explain supported programming errors and suggest troubleshooting steps. |
 | `devaid analyze PATH` | Identify project languages, frameworks, and package managers. |
 | `devaid deps PATH` | Inspect dependency manifests offline. |
@@ -114,7 +114,7 @@ Run `devaid --help` to see the commands available in your installed version. Com
 | `devaid dashboard PATH` | Open an interactive terminal menu for common diagnostics. |
 | `devaid config-init PATH` | Create a starter `.devaid.toml` diagnostic profile. |
 
-Use `devaid COMMAND --help` for command-specific options.
+Backups are created locally. Common secret files (such as `.env`, private keys, and credential files), version-control folders, virtual environments, caches, and dependency directories are excluded by default. Review the archive before sharing it. Restore requires a destination that does not already exist; DevAid never overwrites an existing project directory.\n\nUse `devaid COMMAND --help` for command-specific options.
 
 ## Install and run from source
 
