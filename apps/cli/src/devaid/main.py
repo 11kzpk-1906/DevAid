@@ -102,7 +102,7 @@ def welcome(path: Path = Path(".")) -> None:
     elif choice == "config":
         config_init(path)
     elif choice == "help":
-        console.print(app.get_help())
+        console.print("Run `devaid --help` to explore every available command.")
     else:
         console.print("Welcome menu closed. Happy building!")
 
