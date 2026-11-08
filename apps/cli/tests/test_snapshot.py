@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from devaid.commands.snapshot import compare_snapshots, create_snapshot
 
 
