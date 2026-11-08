@@ -84,7 +84,8 @@ Run `devaid --help` to see the commands available in your installed version. Com
 | Command | Purpose |
 | --- | --- |
 | `devaid version` | Display the installed version. |
-| `devaid welcome` (or `devaid welcome --path PATH`) | Open a guided first-run menu for common tasks. |\n| `devaid update-check` | Check GitHub for the latest stable release without installing it. |
+| `devaid welcome` (or `devaid welcome --path PATH`) | Open a guided first-run menu for common tasks. |
+| `devaid update-check` | Check GitHub for the latest stable release without installing it. |
 | `devaid explain` | Explain supported programming errors and suggest troubleshooting steps. |
 | `devaid analyze PATH` | Identify project languages, frameworks, and package managers. |
 | `devaid deps PATH` | Inspect dependency manifests offline. |
