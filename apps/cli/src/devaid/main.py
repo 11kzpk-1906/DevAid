@@ -9,6 +9,7 @@ from rich.prompt import Prompt
 from devaid import __version__
 from devaid.analyzers.project import analyze_project
 from devaid.commands.explain import explain
+from devaid.commands.update_checker import update_check
 from devaid.diagnostics.accessibility import accessibility_doctor
 from devaid.diagnostics.api import inspect_api
 from devaid.diagnostics.config import check_config
@@ -54,6 +55,7 @@ def version() -> None:
 
 
 app.command(name="explain")(explain)
+app.command(name="update-check")(update_check)
 app.command(name="analyze")(analyze_project)
 app.command(name="deps")(check_dependencies)
 app.command(name="doctor")(run_doctor)
