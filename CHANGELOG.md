@@ -5,7 +5,7 @@ All notable changes to DevAid are documented here.
 ## [Unreleased]
 
 ### Added
-- Local project ZIP backups with common secret/cache exclusions, SHA-256 integrity verification, and safe restore into a new directory.
+- Local project snapshots with SHA-256 file fingerprints and comparison of added, modified, deleted, and unchanged files.\n- Local project ZIP backups with common secret/cache exclusions, SHA-256 integrity verification, and safe restore into a new directory.
 - `devaid update-check` checks the latest stable GitHub release without installing
   or changing files.
 - Guided `devaid welcome` first-run menu for diagnostics, project analysis, dashboard, configuration, and help.
