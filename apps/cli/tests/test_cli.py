@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from devaid.main import app
 from typer.testing import CliRunner
 
@@ -17,8 +19,7 @@ def test_help_command() -> None:
 
 
 
-
-def test_backup_verify_and_restore_commands(tmp_path) -> None:
+def test_backup_verify_and_restore_commands(tmp_path: Path) -> None:
     project = tmp_path / "sample"
     project.mkdir()
     (project / "hello.txt").write_text("hello", encoding="utf-8")
