@@ -5,7 +5,7 @@ All notable changes to DevAid are documented here.
 ## [Unreleased]
 
 ### Added
-- `devaid update-check` checks the latest stable GitHub release without installing or changing files.
+- `devaid update-check` checks the latest stable GitHub release without installing\n  or changing files.
 - Guided `devaid welcome` first-run menu for diagnostics, project analysis, dashboard, configuration, and help.
 - Tests for the welcome flow and invalid project paths.
 
