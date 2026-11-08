@@ -17,7 +17,8 @@ def test_version_key_orders_development_before_stable() -> None:
 def test_fetch_latest_release_reads_github_response(mock_urlopen: MagicMock) -> None:
     response = MagicMock()
     response.__enter__.return_value.read.return_value = (
-        b'{"tag_name":"v0.2.0","html_url":"https://github.com/11kzpk-1906/DevAid/releases/tag/v0.2.0"}'
+        b'{"tag_name":"v0.2.0","html_url":"https://github.com/11kzpk-1906/DevAid/'
+        b'releases/tag/v0.2.0"}'
     )
     mock_urlopen.return_value = response
 
