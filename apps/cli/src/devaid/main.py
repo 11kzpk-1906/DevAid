@@ -11,6 +11,7 @@ from devaid import __version__
 from devaid.analyzers.project import analyze_project
 from devaid.commands.backup import backup_project, restore_backup, verify_backup
 from devaid.commands.explain import explain
+from devaid.commands.snapshot import compare_snapshots, create_snapshot
 from devaid.commands.update_checker import update_check
 from devaid.diagnostics.accessibility import accessibility_doctor
 from devaid.diagnostics.api import inspect_api
@@ -47,6 +48,9 @@ BACKUP_OUTPUT_OPTION = typer.Option(None, "--output", "-o")
 BACKUP_VERIFY_ARCHIVE_ARGUMENT = typer.Argument(...)
 RESTORE_ARCHIVE_ARGUMENT = typer.Argument(...)
 RESTORE_DESTINATION_OPTION = typer.Option(..., "--destination", "-d")
+SNAPSHOT_OUTPUT_OPTION = typer.Option(None, "--output", "-o")
+SNAPSHOT_BEFORE_ARGUMENT = typer.Argument(...)
+SNAPSHOT_AFTER_ARGUMENT = typer.Argument(...)
 
 
 @app.callback()
@@ -153,6 +157,44 @@ def restore_command(
         raise typer.Exit(code=1) from error
     console.print(f"[green]Restored {file_count} files to {destination.resolve()}[/green]")
 
+
+
+@app.command(name="snapshot")
+def snapshot_command(
+    path: Path = Path("."),
+    output: Path | None = SNAPSHOT_OUTPUT_OPTION,
+) -> None:
+    """Capture a local project snapshot with file sizes and SHA-256 hashes."""
+    target = output if output is not None else path / ".devaid-snapshot.json"
+    try:
+        snapshot_path = create_snapshot(path, target)
+    except (OSError, ValueError) as error:
+        console.print(f"[bold red]Snapshot failed:[/bold red] {error}")
+        raise typer.Exit(code=1) from error
+    console.print(f"[green]Snapshot created:[/green] {snapshot_path}")
+
+
+@app.command(name="snapshot-compare")
+def snapshot_compare_command(
+    before: Path = SNAPSHOT_BEFORE_ARGUMENT,
+    after: Path = SNAPSHOT_AFTER_ARGUMENT,
+) -> None:
+    """Compare two snapshots and list added, modified, and deleted files."""
+    try:
+        changes = compare_snapshots(before, after)
+    except (OSError, ValueError) as error:
+        console.print(f"[bold red]Snapshot comparison failed:[/bold red] {error}")
+        raise typer.Exit(code=1) from error
+
+    for category in ("added", "modified", "deleted", "unchanged"):
+        paths = changes[category]
+        console.print(f"\n[bold cyan]{category.title()} ({len(paths)})[/bold cyan]")
+        for item in paths:
+            console.print(f"  {item}")
+    console.print(
+        "\n[bold]Summary:[/bold] "
+        + ", ".join(f"{name}: {len(paths)}" for name, paths in changes.items())
+    )
 
 @app.command(name="config-init")
 def config_init(path: Path = Path(".")) -> None:
