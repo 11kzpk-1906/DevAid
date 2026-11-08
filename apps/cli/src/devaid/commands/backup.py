@@ -8,7 +8,7 @@ import os
 import stat
 import tempfile
 import zipfile
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 
 MANIFEST_NAME = "__devaid_backup__.json"
@@ -35,7 +35,7 @@ def _safe_archive_path(name: str) -> PurePosixPath:
     if not name or "\\" in name:
         raise ValueError("The backup contains an unsafe file path.")
     path = PurePosixPath(name)
-    if path.is_absolute() or any(part in {"", ".", ".."} for part in path.parts):
+    if (\n        path.is_absolute()\n        or PureWindowsPath(name).drive\n        or any(part in {"", ".", ".."} for part in path.parts)\n    ):
         raise ValueError("The backup contains an unsafe file path.")
     return path
 
