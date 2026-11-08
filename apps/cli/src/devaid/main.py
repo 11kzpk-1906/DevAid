@@ -3,11 +3,13 @@
 from pathlib import Path
 
 import typer
+import zipfile
 from rich.console import Console
 from rich.prompt import Prompt
 
 from devaid import __version__
 from devaid.analyzers.project import analyze_project
+from devaid.commands.backup import backup_project, restore_backup, verify_backup
 from devaid.commands.explain import explain
 from devaid.commands.update_checker import update_check
 from devaid.diagnostics.accessibility import accessibility_doctor
@@ -107,6 +109,45 @@ def welcome(path: Path = Path(".")) -> None:
         console.print("Run `devaid --help` to explore every available command.")
     else:
         console.print("Welcome menu closed. Happy building!")
+
+
+@app.command(name="backup")
+def backup_command(
+    path: Path = Path("."),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+) -> None:
+    """Create a local ZIP backup of a project, excluding common secrets and caches."""
+    try:
+        archive_path = backup_project(path, output)
+    except (FileExistsError, NotADirectoryError, OSError, ValueError) as error:
+        console.print(f"[bold red]Backup failed:[/bold red] {error}")
+        raise typer.Exit(code=1) from error
+    console.print(f"[green]Backup created:[/green] {archive_path}")
+
+
+@app.command(name="backup-verify")
+def backup_verify_command(archive: Path = typer.Argument(...)) -> None:
+    """Verify a DevAid backup manifest and every archived file checksum."""
+    try:
+        file_count = verify_backup(archive)
+    except (OSError, ValueError, zipfile.BadZipFile) as error:
+        console.print(f"[bold red]Backup verification failed:[/bold red] {error}")
+        raise typer.Exit(code=1) from error
+    console.print(f"[green]Backup verified.[/green] {file_count} files passed integrity checks.")
+
+
+@app.command(name="restore")
+def restore_command(
+    archive: Path = typer.Argument(...),
+    destination: Path = typer.Option(..., "--destination", "-d"),
+) -> None:
+    """Restore a verified backup into a new directory without overwriting files."""
+    try:
+        file_count = restore_backup(archive, destination)
+    except (FileExistsError, FileNotFoundError, OSError, ValueError, zipfile.BadZipFile) as error:
+        console.print(f"[bold red]Restore failed:[/bold red] {error}")
+        raise typer.Exit(code=1) from error
+    console.print(f"[green]Restored {file_count} files to {destination.resolve()}[/green]")
 
 
 @app.command(name="config-init")
