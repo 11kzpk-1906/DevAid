@@ -9,6 +9,8 @@ from urllib.request import Request, urlopen
 
 from rich.console import Console
 
+from devaid import __version__
+
 DEFAULT_REPOSITORY = "11kzpk-1906/DevAid"
 VERSION_PATTERN = re.compile(
     r"^v?(\d+)\.(\d+)\.(\d+)(?:[-.]?(dev|a|b|rc)[.-]?(\d+))?$",
@@ -60,8 +62,9 @@ def fetch_latest_release(repository: str, timeout: float = 5.0) -> tuple[str, st
     return tag, release_url
 
 
-def update_check(current_version: str, repository: str = DEFAULT_REPOSITORY) -> None:
+def update_check(repository: str = DEFAULT_REPOSITORY) -> None:
     """Display whether a newer stable DevAid release is available."""
+    current_version = __version__
     console.print(f"[bold cyan]DevAid update check[/bold cyan] — current: v{current_version}")
 
     try:
