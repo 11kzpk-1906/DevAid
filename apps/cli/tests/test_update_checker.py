@@ -1,9 +1,9 @@
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError, URLError
 
-from devaid.commands.update_checker import fetch_latest_release, update_check, version_key
-from typer.testing import CliRunner
+from devaid.commands.update_checker import fetch_latest_release, version_key
 from devaid.main import app
+from typer.testing import CliRunner
 
 runner = CliRunner()
 
