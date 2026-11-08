@@ -4,14 +4,14 @@ import json
 import zipfile
 from pathlib import Path
 
+import pytest
+
 from devaid.commands.backup import (
     MANIFEST_NAME,
     backup_project,
     restore_backup,
     verify_backup,
 )
-
-import pytest
 
 
 def test_backup_excludes_generated_and_sensitive_files(tmp_path: Path) -> None:
