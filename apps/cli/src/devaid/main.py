@@ -43,6 +43,9 @@ app = typer.Typer(
 )
 
 console = Console()
+BACKUP_OUTPUT_OPTION = typer.Option(None, "--output", "-o")
+BACKUP_ARCHIVE_ARGUMENT = typer.Argument(...)
+RESTORE_DESTINATION_OPTION = typer.Option(..., "--destination", "-d")
 
 
 @app.callback()
@@ -114,7 +117,7 @@ def welcome(path: Path = Path(".")) -> None:
 @app.command(name="backup")
 def backup_command(
     path: Path = Path("."),
-    output: Path | None = typer.Option(None, "--output", "-o"),
+    output: Path | None = BACKUP_OUTPUT_OPTION,
 ) -> None:
     """Create a local ZIP backup of a project, excluding common secrets and caches."""
     try:
@@ -126,7 +129,7 @@ def backup_command(
 
 
 @app.command(name="backup-verify")
-def backup_verify_command(archive: Path = typer.Argument(...)) -> None:
+def backup_verify_command(archive: Path = BACKUP_ARCHIVE_ARGUMENT) -> None:
     """Verify a DevAid backup manifest and every archived file checksum."""
     try:
         file_count = verify_backup(archive)
@@ -138,8 +141,8 @@ def backup_verify_command(archive: Path = typer.Argument(...)) -> None:
 
 @app.command(name="restore")
 def restore_command(
-    archive: Path = typer.Argument(...),
-    destination: Path = typer.Option(..., "--destination", "-d"),
+    archive: Path = BACKUP_ARCHIVE_ARGUMENT,
+    destination: Path = RESTORE_DESTINATION_OPTION,
 ) -> None:
     """Restore a verified backup into a new directory without overwriting files."""
     try:
