@@ -20,10 +20,26 @@ MAX_FILE_BYTES = 1_000_000
 MAX_FILES = 5_000
 
 JS_RULES: tuple[tuple[str, re.Pattern[str], str], ...] = (
-    ("ERROR", re.compile(r"\beval\s*\("), "Dynamic eval() executes generated code; avoid it where possible"),
-    ("REVIEW", re.compile(r"\.innerHTML\s*="), "Assigning innerHTML can introduce cross-site scripting; prefer textContent or safe DOM APIs"),
-    ("ERROR", re.compile(r"\bchild_process\.(?:exec|execSync)\s*\("), "Review shell command construction; untrusted input can cause command injection"),
-    ("REVIEW", re.compile(r"\bnew\s+Function\s*\("), "The Function constructor dynamically executes code"),
+    (
+        "ERROR",
+        re.compile(r"\beval\s*\("),
+        "Dynamic eval() executes generated code; avoid it where possible",
+    ),
+    (
+        "REVIEW",
+        re.compile(r"\.innerHTML\s*="),
+        "Assigning innerHTML can introduce cross-site scripting; prefer textContent or safe DOM APIs",
+    ),
+    (
+        "ERROR",
+        re.compile(r"\bchild_process\.(?:exec|execSync)\s*\("),
+        "Review shell command construction; untrusted input can cause command injection",
+    ),
+    (
+        "REVIEW",
+        re.compile(r"\bnew\s+Function\s*\("),
+        "The Function constructor dynamically executes code",
+    ),
 )
 
 
@@ -32,7 +48,10 @@ def _python_findings(source: str, relative: str) -> list[tuple[str, str, int, st
     try:
         tree = ast.parse(source)
     except SyntaxError as error:
-        return [("INFO", relative, error.lineno or 0, "Python source could not be parsed; static checks skipped")]
+        return [
+            ("INFO", relative, error.lineno or 0,
+             "Python source could not be parsed; static checks skipped")
+        ]
 
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
@@ -46,15 +65,27 @@ def _python_findings(source: str, relative: str) -> list[tuple[str, str, int, st
             name = f"{prefix}.{node.func.attr}" if prefix else node.func.attr
 
         if name in {"eval", "exec"}:
-            findings.append(("ERROR", relative, node.lineno, f"Use of {name}() dynamically executes code; validate inputs and avoid dynamic evaluation"))
+            findings.append((
+                "ERROR", relative, node.lineno,
+                f"Use of {name}() dynamically executes code; validate inputs and avoid dynamic evaluation",
+            ))
         elif name == "os.system":
-            findings.append(("ERROR", relative, node.lineno, "os.system() invokes a shell; prefer subprocess with an argument list"))
+            findings.append((
+                "ERROR", relative, node.lineno,
+                "os.system() invokes a shell; prefer subprocess with an argument list",
+            ))
         elif name in {"pickle.load", "pickle.loads"}:
-            findings.append(("ERROR", relative, node.lineno, "pickle can execute code while deserializing; never load untrusted data"))
+            findings.append((
+                "ERROR", relative, node.lineno,
+                "pickle can execute code while deserializing; never load untrusted data",
+            ))
         elif name == "yaml.load":
             safe_loader = any(keyword.arg == "Loader" for keyword in node.keywords)
             if not safe_loader:
-                findings.append(("ERROR", relative, node.lineno, "yaml.load() without an explicit safe loader can construct unsafe objects"))
+                findings.append((
+                    "ERROR", relative, node.lineno,
+                    "yaml.load() without an explicit safe loader can construct unsafe objects",
+                ))
         elif name in {"subprocess.run", "subprocess.call", "subprocess.Popen"}:
             shell_true = any(
                 keyword.arg == "shell"
@@ -63,13 +94,22 @@ def _python_findings(source: str, relative: str) -> list[tuple[str, str, int, st
                 for keyword in node.keywords
             )
             if shell_true:
-                findings.append(("ERROR", relative, node.lineno, "subprocess is called with shell=True; avoid shell parsing for untrusted input"))
+                findings.append((
+                    "ERROR", relative, node.lineno,
+                    "subprocess is called with shell=True; avoid shell parsing for untrusted input",
+                ))
         elif name in {"hashlib.md5", "hashlib.sha1"}:
-            findings.append(("REVIEW", relative, node.lineno, "MD5/SHA-1 is unsuitable for security-sensitive hashing; use SHA-256 or stronger"))
+            findings.append((
+                "REVIEW", relative, node.lineno,
+                "MD5/SHA-1 is unsuitable for security-sensitive hashing; use SHA-256 or stronger",
+            ))
         elif name.endswith(".execute") and node.args:
             query = node.args[0]
             if isinstance(query, (ast.JoinedStr, ast.BinOp, ast.Call)):
-                findings.append(("REVIEW", relative, node.lineno, "SQL query may be built dynamically; use parameterized queries"))
+                findings.append((
+                    "REVIEW", relative, node.lineno,
+                    "SQL query may be built dynamically; use parameterized queries",
+                ))
     return findings
 
 
@@ -104,7 +144,10 @@ def check_security_code(path: Path) -> None:
                         line = source.count("\n", 0, match.start()) + 1
                         findings.append((severity, relative, line, message))
             if scanned >= MAX_FILES:
-                findings.append(("INFO", "Project scan", 0, f"Stopped at the {MAX_FILES}-file safety limit"))
+                findings.append((
+                    "INFO", "Project scan", 0,
+                    f"Stopped at the {MAX_FILES}-file safety limit",
+                ))
                 break
         if scanned >= MAX_FILES:
             break
@@ -116,7 +159,12 @@ def check_security_code(path: Path) -> None:
     table.add_column("Finding")
     styles = {"ERROR": "red", "REVIEW": "yellow", "INFO": "blue"}
     for severity, filename, line, message in findings:
-        table.add_row(f"[{styles[severity]}]{severity}[/{styles[severity]}]", filename, str(line or "—"), message)
+        table.add_row(
+            f"[{styles[severity]}]{severity}[/{styles[severity]}]",
+            filename,
+            str(line or "—"),
+            message,
+        )
     if not findings:
         table.add_row("[green]PASS[/green]", "—", "—", "No configured risky patterns detected")
     console.print(table)
@@ -124,7 +172,14 @@ def check_security_code(path: Path) -> None:
     reviews = sum(item[0] == "REVIEW" for item in findings)
     infos = sum(item[0] == "INFO" for item in findings)
     console.print(Panel(
-        f"{scanned} source files scanned • {errors} high-risk patterns • {reviews} items to review • {infos} informational",
+        (
+            f"{scanned} source files scanned • {errors} high-risk patterns • "
+            f"{reviews} items to review • {infos} informational"
+        ),
         title="Code security summary", border_style="cyan",
     ))
-    console.print("[dim]Read-only local heuristics. Source is never executed or uploaded. False positives and missed issues are possible; this is not a substitute for expert review or a dedicated SAST tool.[/dim]")
+    console.print(
+        "[dim]Read-only local heuristics. Source is never executed or uploaded. "
+        "False positives and missed issues are possible; this is not a substitute "
+        "for expert review or a dedicated SAST tool.[/dim]"
+    )
