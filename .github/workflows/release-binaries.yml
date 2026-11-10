@@ -67,14 +67,14 @@ jobs:
       - name: Build standalone executable (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
-          uv run --with pyinstaller pyinstaller \\
-            --clean \\
-            --noconfirm \\
-            --onefile \\
-            --name devaid \\
-            --paths apps/cli/src \\
-            --collect-submodules devaid \\
-            --copy-metadata devaid \\
+          uv run --with pyinstaller pyinstaller \
+            --clean \
+            --noconfirm \
+            --onefile \
+            --name devaid \
+            --paths apps/cli/src \
+            --collect-submodules devaid \
+            --copy-metadata devaid \
             apps/cli/src/devaid/main.py
 
       - name: Test executable
@@ -176,9 +176,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \\
-            dist/devaid-windows-x64.zip \\
-            dist/devaid-linux-x64.zip \\
-            dist/devaid-macos-arm64.zip \\
-            --verify-tag \\
+          gh release create "$GITHUB_REF_NAME" \
+            dist/devaid-windows-x64.zip \
+            dist/devaid-linux-x64.zip \
+            dist/devaid-macos-arm64.zip \
+            --verify-tag \
             --generate-notes
