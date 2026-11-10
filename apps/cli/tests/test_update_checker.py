@@ -1,5 +1,5 @@
 from unittest.mock import MagicMock, patch
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
 
 from devaid.commands.update_checker import fetch_latest_release, version_key
 from devaid.main import app
@@ -49,3 +49,47 @@ def test_update_check_handles_network_failure(mock_urlopen: MagicMock) -> None:
     result = runner.invoke(app, ["update-check"])
     assert result.exit_code == 0
     assert "Could not check for updates" in result.output
+
+
+
+@patch("devaid.commands.update_checker.urlopen")
+def test_update_check_handles_timeout(mock_urlopen: MagicMock) -> None:
+    mock_urlopen.side_effect = TimeoutError("timed out")
+    result = runner.invoke(app, ["update-check"])
+    assert result.exit_code == 0
+    assert "timed out" in result.output
+    assert "No files were changed" in result.output
+
+
+@patch("devaid.commands.update_checker.urlopen")
+def test_update_check_handles_github_rate_limit(mock_urlopen: MagicMock) -> None:
+    mock_urlopen.side_effect = HTTPError(
+        "https://api.github.com", 429, "rate limited", None, None
+    )
+    result = runner.invoke(app, ["update-check"])
+    assert result.exit_code == 0
+    assert "rate limit" in result.output
+    assert "No files were changed" in result.output
+
+
+@patch("devaid.commands.update_checker.urlopen")
+def test_update_check_handles_github_server_error(mock_urlopen: MagicMock) -> None:
+    mock_urlopen.side_effect = HTTPError(
+        "https://api.github.com", 503, "unavailable", None, None
+    )
+    result = runner.invoke(app, ["update-check"])
+    assert result.exit_code == 0
+    assert "temporarily unavailable" in result.output
+
+
+@patch("devaid.commands.update_checker.urlopen")
+def test_update_check_handles_unexpected_api_response(
+    mock_urlopen: MagicMock,
+) -> None:
+    response = MagicMock()
+    response.__enter__.return_value.read.return_value = b"not-json"
+    mock_urlopen.return_value = response
+    result = runner.invoke(app, ["update-check"])
+    assert result.exit_code == 0
+    assert "unexpected response" in result.output
+    assert "No files were changed" in result.output
