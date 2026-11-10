@@ -2,6 +2,33 @@
 
 All notable changes to DevAid are documented here.
 
+## [0.3.0] - 2026-11-10
+
+### Added
+- Local static source-code security checks for selected risky Python and JavaScript/TypeScript patterns.
+- A transparent security posture score with weighted checks and actionable recommendations.
+- Detection of sensitive files tracked by Git, without printing secret contents.
+- Weekly Dependabot update configuration for Python dependencies and GitHub Actions.
+- Cross-platform CLI test coverage on Windows, Ubuntu Linux, and macOS with Python 3.11.
+- Automated release publishing on version tags, including Windows x64, Linux x64, and macOS ARM64 archives.
+- SHA-256 checksum manifest generation and verification for release archives.
+- Release packaging checks for the expected executable name and non-empty archive contents.
+- Standalone installation and platform-support documentation.
+- Markdown link validation in CI.
+
+### Improved
+- Expanded end-to-end coverage for backup, verification, restore, and project snapshot workflows.
+- Reject duplicate entries and duplicate manifest paths when verifying backup archives.
+- Improved offline, timeout, rate-limit, and GitHub server-error handling in `devaid update-check`.
+- Run tests, lint, and Markdown link checks before building release binaries.
+- Improved security-score CI detection so unrelated workflows do not count as test/lint automation.
+
+### Security and privacy
+- Security diagnostics remain local and read-only; source files are not executed or uploaded.
+- Backup verification rejects ambiguous duplicate archive entries.
+- Release archives are checked before publication and accompanied by SHA-256 checksums.
+- Static security findings are heuristic guidance, not a complete security audit or guarantee.
+
 ## [0.2.0] - 2026-11-08
 
 ### Added
