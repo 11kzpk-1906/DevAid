@@ -108,7 +108,7 @@ Run `devaid --help` to see the commands available in your installed version. Com
 | `devaid api URL` | Send a read-only HTTP GET and inspect the response. |
 | `devaid docs PATH` | Check documentation file and section completeness. |
 | `devaid security PATH` | Scan local project files for common secret and security hygiene issues. |
-| `devaid security-code PATH` | Scan Python and JavaScript/TypeScript source for selected risky coding patterns. |
+| `devaid security-code PATH` | Scan Python and JavaScript/TypeScript source for selected risky coding patterns. |\n| `devaid security-score PATH` | Calculate a weighted, local security posture score with actionable findings. |
 | `devaid workflow-doctor PATH` | Review GitHub Actions permissions, action pinning, and checkout credential settings. |
 | `devaid docker-doctor PATH` | Review Dockerfiles and Compose files for common security and reliability issues. |
 | `devaid package-doctor PATH` | Check Python and Node.js manifests and lockfile consistency. |
@@ -175,6 +175,7 @@ The CLI includes local, read-only security checks:
 
 - `devaid security .` checks for likely exposed credentials and environment-file hygiene.
 - `devaid security-code .` checks selected Python and JavaScript/TypeScript patterns, including dynamic evaluation, unsafe deserialization, shell execution, weak hashes, and potentially unsafe SQL construction.
+- `devaid security-score .` scores local security controls and reports actionable gaps. Unassessed checks are excluded from the score denominator. The optional project path is accepted as a CLI string and validated by the command.
 - `devaid workflow-doctor .` and `devaid docker-doctor .` review common CI and container configuration risks.
 
 These checks are heuristic, do not execute project code, and may produce false positives or miss vulnerabilities. They are not a complete security audit. See [Security Diagnostics](docs/security.md).
