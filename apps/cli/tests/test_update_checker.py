@@ -48,7 +48,8 @@ def test_update_check_handles_network_failure(mock_urlopen: MagicMock) -> None:
 
     result = runner.invoke(app, ["update-check"])
     assert result.exit_code == 0
-    assert "Could not check for updates" in result.output
+    assert "Cannot reach GitHub" in result.output
+    assert "No files were changed" in result.output
 
 
 
