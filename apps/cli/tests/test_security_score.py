@@ -93,7 +93,7 @@ def test_security_score_does_not_count_unrelated_workflow_as_ci(
         "      - run: echo publishing\n",
         encoding="utf-8",
     )
-    (tmp_path / "app.py").write_text("print('safe')\\n", encoding="utf-8")
+    (tmp_path / "app.py").write_text("print('safe')\n", encoding="utf-8")
 
     _, _, rows = evaluate_security_posture(tmp_path)
 
