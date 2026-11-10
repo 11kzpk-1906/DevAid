@@ -43,6 +43,16 @@ def _workflow_files(root: Path) -> list[Path]:
     ]
 
 
+def _has_ci_checks(workflow_text: str) -> bool:
+    """Return whether workflow configuration includes recognizable test or lint steps."""
+    indicators = (
+        "pytest", "unittest", "tox", "nox", "ruff", "mypy",
+        "npm test", "pnpm test", "yarn test", "cargo test",
+        "go test", "dotnet test",
+    )
+    return any(indicator in workflow_text for indicator in indicators)
+
+
 def evaluate_security_posture(
     root: Path,
 ) -> tuple[int, int, list[tuple[str, str, int, int, str]]]:
@@ -137,15 +147,18 @@ def evaluate_security_posture(
         if codeql else "Add a GitHub CodeQL workflow for supported source languages",
     ))
 
-    ci_present = bool(workflows)
+    ci_present = _has_ci_checks(workflow_text)
     weight = WEIGHTS["CI workflow"]
     rows.append((
         "CI workflow",
         "PASS" if ci_present else "REVIEW",
         weight,
         weight if ci_present else 0,
-        f"{len(workflows)} GitHub Actions workflow file(s) found"
-        if ci_present else "Add automated tests and lint checks in GitHub Actions",
+        "A workflow includes a recognizable test or lint command"
+        if ci_present else (
+            "Add a workflow with test or lint commands; "
+            "workflow files without test/lint commands do not count"
+        ),
     ))
 
     scanned = 0
