@@ -12,7 +12,7 @@ The v0.2.0 GitHub Release contains these uploaded assets:
 | Linux | x64 | `devaid-linux-x64.zip` | Published in v0.2.0 |
 | macOS | ARM64 (Apple Silicon) | `devaid-macos-arm64.zip` | Published in v0.2.0 |
 
-The release workflow defines matching build targets for these three platforms and smoke-tests each generated executable with `--help` and `version` before packaging it. New automated releases also publish a `SHA256SUMS.txt` manifest covering all three ZIP assets; the workflow verifies the manifest before attaching it to the release.
+The release workflow defines matching build targets for these three platforms and smoke-tests each generated executable with `--help` and `version` before packaging it. It also checks that each ZIP contains exactly one non-empty executable with the expected filename. New automated releases publish a `SHA256SUMS.txt` manifest covering all three ZIP assets; the workflow verifies the manifest before attaching it to the release.
 
 **Not published as standalone binaries:** Windows ARM64, Linux ARM64, macOS Intel (x86_64), and other architectures. This means no downloadable binary is currently offered for those targets; it does not establish that the Python source cannot run there.
 
@@ -31,9 +31,10 @@ The evidence currently available is:
 
 | Environment | Evidence | Status |
 | --- | --- | --- |
-| Ubuntu Linux, Python 3.11 | The CLI Tests GitHub Actions workflow installs Python 3.11 and runs pytest and Ruff | Automated CI |
+| Windows, Python 3.11 | The CLI Tests GitHub Actions workflow runs pytest, Ruff, and Markdown link checks | Automated CI |
+| Ubuntu Linux, Python 3.11 | The CLI Tests GitHub Actions workflow runs pytest, Ruff, and Markdown link checks | Automated CI |
+| macOS, Python 3.11 | The CLI Tests GitHub Actions workflow runs pytest, Ruff, and Markdown link checks | Automated CI |
 | Windows, Python 3.14.7 | The v0.2.0 release notes record a local maintainer test | Locally tested; not CI |
-| macOS, Python 3.11+ | No source-install test result is currently recorded | Not yet verified |
 | Other OS / Python combinations | No test result is currently recorded | Not yet verified |
 
 Python 3.11+ is the declared interpreter requirement, not a claim that every operating system and Python version has been tested. The automated source-test matrix covers Windows, Ubuntu Linux, and macOS on Python 3.11; other Python versions and operating systems remain unverified by CI.
