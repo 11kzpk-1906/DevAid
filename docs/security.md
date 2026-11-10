@@ -5,6 +5,7 @@ DevAid provides local, read-only security hygiene checks. Run:
 ```bash
 devaid security .
 devaid security-code .
+devaid security-score .
 devaid workflow-doctor .
 devaid docker-doctor .
 ```
@@ -24,6 +25,10 @@ The static code scanner checks Python AST calls for dynamic evaluation, shell ex
 ## Automated dependency maintenance
 
 The repository configures Dependabot to check Python dependencies and GitHub Actions weekly. Dependabot may open update pull requests; review the changelog and CI results before merging. Automated version updates do not replace vulnerability triage or a dependency audit.
+
+## Security posture score
+
+`devaid security-score .` produces a weighted 0–100 posture score from local controls: environment-file ignore rules, Git-tracked sensitive filenames, a `SECURITY.md` policy, Dependabot configuration, CodeQL workflow presence, CI workflow presence, and selected static source-code patterns. Each row shows PASS, REVIEW, ERROR, or INFO with a suggested action. Checks that cannot be assessed (for example, a non-Git folder or a project without supported source files) are marked INFO and excluded from the denominator rather than counted as passing. The score is a prioritization aid, not a certification, vulnerability scan, or security audit.
 
 ## Safety and limitations
 
