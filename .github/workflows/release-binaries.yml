@@ -50,6 +50,15 @@ jobs:
       - name: Install project dependencies
         run: uv sync --extra dev
 
+      - name: Run test suite before packaging
+        run: uv run pytest
+
+      - name: Run lint before packaging
+        run: uv run ruff check .
+
+      - name: Check local Markdown links before packaging
+        run: uv run python scripts/check_markdown_links.py
+
       - name: Build standalone executable (Windows)
         if: runner.os == 'Windows'
         shell: cmd
