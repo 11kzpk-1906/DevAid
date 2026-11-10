@@ -28,7 +28,8 @@ JS_RULES: tuple[tuple[str, re.Pattern[str], str], ...] = (
     (
         "REVIEW",
         re.compile(r"\.innerHTML\s*="),
-        "Assigning innerHTML can introduce cross-site scripting; prefer textContent or safe DOM APIs",
+        ("Assigning innerHTML can introduce cross-site scripting; "
+         "prefer textContent or safe DOM APIs"),
     ),
     (
         "ERROR",
@@ -67,7 +68,8 @@ def _python_findings(source: str, relative: str) -> list[tuple[str, str, int, st
         if name in {"eval", "exec"}:
             findings.append((
                 "ERROR", relative, node.lineno,
-                f"Use of {name}() dynamically executes code; validate inputs and avoid dynamic evaluation",
+                (f"Use of {name}() dynamically executes code; validate inputs "
+                 "and avoid dynamic evaluation"),
             ))
         elif name == "os.system":
             findings.append((
