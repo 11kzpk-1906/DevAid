@@ -121,10 +121,11 @@ jobs:
 
           Compress-Archive -Path $Executable -DestinationPath $env:ARCHIVE -Force
 
-      - name: Verify ZIP archive
+      - name: Verify ZIP archive contents
         shell: pwsh
         env:
           ARCHIVE: ${{ matrix.archive }}
+          BINARY: ${{ matrix.binary }}
         run: |
           if (-not (Test-Path $env:ARCHIVE)) {
             throw "ZIP archive was not created."
@@ -132,8 +133,17 @@ jobs:
 
           $Zip = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $env:ARCHIVE))
           try {
-            if ($Zip.Entries.Count -eq 0) {
-              throw "ZIP archive is empty."
+            if ($Zip.Entries.Count -ne 1) {
+              throw "Expected exactly one executable in the archive; found $($Zip.Entries.Count)."
+            }
+
+            $Entry = $Zip.Entries[0]
+            if ($Entry.FullName -ne $env:BINARY) {
+              throw "Unexpected archive entry '$($Entry.FullName)'; expected '$($env:BINARY)'."
+            }
+
+            if ($Entry.Length -le 0) {
+              throw "Archived executable is empty."
             }
           }
           finally {
