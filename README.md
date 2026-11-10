@@ -75,7 +75,29 @@ chmod +x ./devaid
 
 If your shell cannot find the executable, run it from the extracted directory using the relative path shown above. You can optionally add that directory to your PATH.
 
-> **Platform note:** published binaries are available for Windows x64, Linux x64, and macOS ARM64 (Apple Silicon). Source installation requires Python 3.11+, but automated CLI tests currently run on Ubuntu only. See the [platform support matrix](docs/platform-support.md) for verified coverage and untested combinations.
+### Verify release downloads
+
+New automated releases include a `SHA256SUMS.txt` file alongside the ZIP archives. Download it into the same folder as the archive you want to verify.
+
+**Linux:**
+```bash
+sha256sum --check SHA256SUMS.txt
+```
+
+**macOS:**
+```bash
+shasum -a 256 -c SHA256SUMS.txt
+```
+
+**Windows (PowerShell):** compare the hash printed by this command with the entry for your downloaded ZIP in `SHA256SUMS.txt`:
+```powershell
+Get-FileHash .\\devaid-windows-x64.zip -Algorithm SHA256
+```
+
+A matching SHA-256 value confirms the downloaded file matches the published checksum. It does not by itself prove who built the file or that the software is vulnerability-free.
+
+
+> **Platform note:** published binaries are available for Windows x64, Linux x64, and macOS ARM64 (Apple Silicon). The CLI test suite runs on Windows, Linux, and macOS with Python 3.11. See the [platform support matrix](docs/platform-support.md) for verified coverage and untested combinations.
 
 ## Available CLI commands
 
