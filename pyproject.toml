@@ -27,7 +27,7 @@ packages = ["apps/cli/src/devaid"]
 
 [tool.pytest.ini_options]
 testpaths = ["apps/cli/tests", "tests"]
-pythonpath = ["apps/cli/src"]
+pythonpath = [".", "apps/cli/src"]
 
 [tool.ruff]
 line-length = 100
