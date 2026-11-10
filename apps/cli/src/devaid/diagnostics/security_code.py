@@ -82,7 +82,7 @@ def check_security_code(path: Path) -> None:
     root = path.resolve()
     findings: list[tuple[str, str, int, str]] = []
     scanned = 0
-    for current, directories, filenames in __import__("os").walk(root):
+    for current, directories, filenames in os.walk(root):
         directories[:] = [name for name in directories if name not in IGNORED_DIRS]
         for filename in filenames:
             file_path = Path(current) / filename
