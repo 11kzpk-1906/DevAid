@@ -50,7 +50,7 @@ def test_full_doctor_runs_all_local_checks(tmp_path: Path) -> None:
     assert "JavaScript Doctor" in result.output
     assert "Full Doctor complete" in result.output
     assert "Final summary:" in result.output
-    assert "17/17 diagnostic reports completed" in " ".join(result.output.split())
+    assert "18/18 diagnostic reports completed" in " ".join(result.output.split())
 
 
 def test_full_doctor_rejects_invalid_directory(tmp_path: Path) -> None:
