@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from typer.testing import CliRunner
-
 from devaid.main import app
+from typer.testing import CliRunner
 
 runner = CliRunner()
 
@@ -125,7 +124,11 @@ def test_snapshot_cli_reports_invalid_inputs(tmp_path: Path) -> None:
 
     compare = runner.invoke(
         app,
-        ["snapshot-compare", str(tmp_path / "missing-before.json"), str(tmp_path / "missing-after.json")],
+        [
+            "snapshot-compare",
+            str(tmp_path / "missing-before.json"),
+            str(tmp_path / "missing-after.json"),
+        ],
     )
     assert compare.exit_code != 0
     assert "Snapshot comparison failed" in compare.output
