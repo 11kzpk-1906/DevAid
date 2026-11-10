@@ -161,7 +161,8 @@ def check_security(path: Path) -> None:
                 "ERROR",
                 tracked_path,
                 0,
-                "Sensitive-looking file is tracked by Git; remove it from history and rotate any exposed credentials",
+                ("Sensitive-looking file is tracked by Git; remove it from history "
+                 "and rotate any exposed credentials"),
             )
         )
 
