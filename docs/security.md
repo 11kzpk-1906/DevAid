@@ -28,7 +28,7 @@ The repository configures Dependabot to check Python dependencies and GitHub Act
 
 ## Security posture score
 
-`devaid security-score .` produces a weighted 0–100 posture score from local controls: environment-file ignore rules, Git-tracked sensitive filenames, a `SECURITY.md` policy, Dependabot configuration, CodeQL workflow presence, CI workflow presence, and selected static source-code patterns. Each row shows PASS, REVIEW, ERROR, or INFO with a suggested action. Checks that cannot be assessed (for example, a non-Git folder or a project without supported source files) are marked INFO and excluded from the denominator rather than counted as passing. The score is a prioritization aid, not a certification, vulnerability scan, or security audit.
+`devaid security-score .` produces a weighted 0–100 posture score from local controls: environment-file ignore rules, Git-tracked sensitive filenames, a `SECURITY.md` policy, Dependabot configuration, CodeQL workflow presence, a CI workflow with recognizable test or lint commands, and selected static source-code patterns. A workflow that only publishes or deploys does not satisfy the CI check. Each row shows PASS, REVIEW, ERROR, or INFO with a suggested action. Checks that cannot be assessed (for example, a non-Git folder or a project without supported source files) are marked INFO and excluded from the denominator rather than counted as passing. The score is a prioritization aid, not a certification, vulnerability scan, or security audit.
 
 ## Safety and limitations
 
