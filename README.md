@@ -75,7 +75,7 @@ chmod +x ./devaid
 
 If your shell cannot find the executable, run it from the extracted directory using the relative path shown above. You can optionally add that directory to your PATH.
 
-> **Platform note:** the published bundles target Windows x64, Linux x64, and macOS ARM64. The macOS bundle is for Apple Silicon; Intel Mac support is not currently listed as a release target.
+> **Platform note:** published binaries are available for Windows x64, Linux x64, and macOS ARM64 (Apple Silicon). Source installation requires Python 3.11+, but automated CLI tests currently run on Ubuntu only. See the [platform support matrix](docs/platform-support.md) for verified coverage and untested combinations.
 
 ## Available CLI commands
 
