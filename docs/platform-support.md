@@ -12,7 +12,7 @@ The v0.2.0 GitHub Release contains these uploaded assets:
 | Linux | x64 | `devaid-linux-x64.zip` | Published in v0.2.0 |
 | macOS | ARM64 (Apple Silicon) | `devaid-macos-arm64.zip` | Published in v0.2.0 |
 
-The release workflow defines matching build targets for these three platforms and smoke-tests each generated executable with `--help` and `version` before packaging it. The v0.2.0 release contains all three ZIP assets.
+The release workflow defines matching build targets for these three platforms and smoke-tests each generated executable with `--help` and `version` before packaging it. New automated releases also publish a `SHA256SUMS.txt` manifest covering all three ZIP assets; the workflow verifies the manifest before attaching it to the release.
 
 **Not published as standalone binaries:** Windows ARM64, Linux ARM64, macOS Intel (x86_64), and other architectures. This means no downloadable binary is currently offered for those targets; it does not establish that the Python source cannot run there.
 
@@ -36,7 +36,7 @@ The evidence currently available is:
 | macOS, Python 3.11+ | No source-install test result is currently recorded | Not yet verified |
 | Other OS / Python combinations | No test result is currently recorded | Not yet verified |
 
-Python 3.11+ is the declared interpreter requirement, not a claim that every operating system and Python version has been tested. The CLI Tests workflow currently runs on Ubuntu only; it is not a cross-platform source test matrix.
+Python 3.11+ is the declared interpreter requirement, not a claim that every operating system and Python version has been tested. The automated source-test matrix covers Windows, Ubuntu Linux, and macOS on Python 3.11; other Python versions and operating systems remain unverified by CI.
 
 ## Browser tools
 
@@ -44,7 +44,7 @@ The tools in `web/` are static HTML, CSS, and JavaScript files intended to run i
 
 ## Support guidance
 
-- Choose a standalone ZIP only when your OS and CPU architecture match the table above.
+- Choose a standalone ZIP only when your OS and CPU architecture match the table above.\n- For releases that include `SHA256SUMS.txt`, verify the downloaded ZIP before extracting it; see the README for platform-specific commands.
 - For other environments, a Python source installation may work if Python 3.11+ and its dependencies are available, but those combinations are not currently verified by the project's CI.
 - Do not assume that a Windows x64 binary runs on Windows ARM64, or that an Apple Silicon binary runs natively on an Intel Mac.
 - Platform coverage may change in later releases. Check the assets attached to the current [GitHub Release](https://github.com/11kzpk-1906/DevAid/releases) before downloading.
