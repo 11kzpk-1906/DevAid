@@ -25,7 +25,8 @@ def _secure_project(root: Path) -> None:
         encoding="utf-8",
     )
     (workflows / "tests.yml").write_text(
-        "name: Tests\non: [push]\njobs: {}\n", encoding="utf-8"
+        "name: Tests\non: [push]\njobs:\n  test:\n    steps:\n"
+        "      - run: pytest\n", encoding="utf-8"
     )
     (root / "app.py").write_text("print('safe')\n", encoding="utf-8")
     subprocess.run(["git", "init", "-q", str(root)], check=True)
@@ -80,3 +81,22 @@ def test_security_score_rejects_invalid_directory(tmp_path: Path) -> None:
     result = runner.invoke(app, ["security-score", str(tmp_path / "missing")])
     assert result.exit_code == 1
     assert "Invalid project directory" in result.output
+
+
+def test_security_score_does_not_count_unrelated_workflow_as_ci(
+    tmp_path: Path,
+) -> None:
+    workflows = tmp_path / ".github" / "workflows"
+    workflows.mkdir(parents=True)
+    (workflows / "publish.yml").write_text(
+        "name: Publish\non: [push]\njobs:\n  release:\n    steps:\n"
+        "      - run: echo publishing\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "app.py").write_text("print('safe')\\n", encoding="utf-8")
+
+    _, _, rows = evaluate_security_posture(tmp_path)
+
+    ci = next(row for row in rows if row[0] == "CI workflow")
+    assert ci[1] == "REVIEW"
+    assert "test or lint" in ci[4]
