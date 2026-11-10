@@ -45,6 +45,8 @@ The latest stable release is **v0.2.0**.
 
 ### Run the standalone CLI
 
+For a complete walkthrough covering downloads, checksums, extraction, PATH setup, and troubleshooting, see the [standalone installation guide](docs/standalone-installation.md).
+
 1. Download the ZIP for your operating system from the release page.
 2. Extract the ZIP to a folder.
 3. Open a terminal in the extracted folder.
