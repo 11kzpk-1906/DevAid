@@ -115,3 +115,50 @@ def test_verify_rejects_windows_drive_path(tmp_path: Path) -> None:
         zipped.writestr(MANIFEST_NAME, json.dumps(manifest))
     with pytest.raises(ValueError, match="unsafe"):
         verify_backup(archive)
+
+
+def test_verify_rejects_duplicate_archive_entries(tmp_path: Path) -> None:
+    archive = tmp_path / "duplicate-entry.zip"
+    manifest = {
+        "format": 1,
+        "files": [
+            {
+                "path": "hello.txt",
+                "size": 5,
+                "sha256": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+            }
+        ],
+    }
+    with zipfile.ZipFile(archive, "w") as zipped:
+        zipped.writestr("hello.txt", "hello")
+        with pytest.warns(UserWarning, match="Duplicate name"):
+            zipped.writestr("hello.txt", "other")
+        zipped.writestr(MANIFEST_NAME, json.dumps(manifest))
+
+    with pytest.raises(ValueError, match="duplicate archive entries"):
+        verify_backup(archive)
+
+
+def test_verify_rejects_duplicate_manifest_paths(tmp_path: Path) -> None:
+    archive = tmp_path / "duplicate-manifest-path.zip"
+    manifest = {
+        "format": 1,
+        "files": [
+            {
+                "path": "hello.txt",
+                "size": 5,
+                "sha256": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+            },
+            {
+                "path": "hello.txt",
+                "size": 5,
+                "sha256": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+            },
+        ],
+    }
+    with zipfile.ZipFile(archive, "w") as zipped:
+        zipped.writestr("hello.txt", "hello")
+        zipped.writestr(MANIFEST_NAME, json.dumps(manifest))
+
+    with pytest.raises(ValueError, match="duplicate path"):
+        verify_backup(archive)
