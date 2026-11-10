@@ -81,6 +81,31 @@ def update_check(repository: str = DEFAULT_REPOSITORY) -> None:
         else:
             console.print("[green]You're up to date with the latest stable release.[/green]")
             console.print(f"Latest stable release: {latest_version}")
-    except (HTTPError, URLError, TimeoutError, OSError, ValueError, json.JSONDecodeError) as error:
-        console.print(f"[yellow]Could not check for updates: {error}[/yellow]")
-        console.print("Check your internet connection and try again.")
+    except HTTPError as error:
+        if error.code in {403, 429}:
+            console.print(
+                "[yellow]GitHub rate limit reached. Wait a little and try again.[/yellow]"
+            )
+        elif error.code >= 500:
+            console.print(
+                "[yellow]GitHub is temporarily unavailable. Try again later.[/yellow]"
+            )
+        else:
+            console.print(
+                f"[yellow]GitHub rejected the update check (HTTP {error.code}).[/yellow]"
+            )
+        console.print("No files were changed.")
+    except (URLError, TimeoutError, OSError) as error:
+        reason = getattr(error, "reason", error)
+        if isinstance(reason, (TimeoutError,)):
+            console.print("[yellow]The update check timed out. Try again later.[/yellow]")
+        else:
+            console.print(
+                "[yellow]Cannot reach GitHub. Check your connection and try again.[/yellow]"
+            )
+        console.print("No files were changed.")
+    except (ValueError, json.JSONDecodeError):
+        console.print(
+            "[yellow]GitHub returned an unexpected response. Try again later.[/yellow]"
+        )
+        console.print("No files were changed.")
