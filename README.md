@@ -175,7 +175,7 @@ The CLI includes local, read-only security checks:
 
 - `devaid security .` checks for likely exposed credentials and environment-file hygiene.
 - `devaid security-code .` checks selected Python and JavaScript/TypeScript patterns, including dynamic evaluation, unsafe deserialization, shell execution, weak hashes, and potentially unsafe SQL construction.
-- `devaid security-score .` scores local security controls and reports actionable gaps. Unassessed checks are excluded from the score denominator.
+- `devaid security-score .` scores local security controls and reports actionable gaps. Unassessed checks are excluded from the score denominator. The optional project path is accepted as a CLI string and validated by the command.
 - `devaid workflow-doctor .` and `devaid docker-doctor .` review common CI and container configuration risks.
 
 These checks are heuristic, do not execute project code, and may produce false positives or miss vulnerabilities. They are not a complete security audit. See [Security Diagnostics](docs/security.md).
