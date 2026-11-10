@@ -156,7 +156,7 @@ def evaluate_security_posture(
         weight if ci_present else 0,
         "A workflow includes a recognizable test or lint command"
         if ci_present else (
-            "Add a workflow that runs project tests or lint checks; "
+            "Add a workflow with test or lint commands; "
             "workflow files without test/lint commands do not count"
         ),
     ))
