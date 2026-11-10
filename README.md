@@ -86,6 +86,8 @@ Run `devaid --help` to see the commands available in your installed version. Com
 | `devaid version` | Display the installed version. |
 | `devaid welcome` (or `devaid welcome --path PATH`) | Open a guided first-run menu for common tasks. |
 | `devaid update-check` | Check GitHub for the latest stable release without installing it. |
+
+`devaid update-check` is read-only. If GitHub is unreachable, times out, rate-limits the request, or returns an unexpected response, the command prints an actionable message and exits with status `0`; update checks are informational and never block other CLI work or modify local files.
 | `devaid backup --path PATH --output FILE` | Create a local ZIP project backup, excluding common secrets and generated folders. |
 | `devaid backup-verify ARCHIVE` | Verify the backup manifest and file checksums. |
 | `devaid restore ARCHIVE --destination PATH` | Restore a verified backup into a new directory without overwriting existing files. |
