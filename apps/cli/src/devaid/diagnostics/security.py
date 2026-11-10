@@ -155,6 +155,17 @@ def check_security(path: Path) -> None:
         )
     )
 
+    for tracked_path in _tracked_sensitive_files(root):
+        findings.append(
+            (
+                "ERROR",
+                tracked_path,
+                0,
+                ("Sensitive-looking file is tracked by Git; remove it from history "
+                 "and rotate any exposed credentials"),
+            )
+        )
+
     scanned = 0
     for current, directories, filenames in os.walk(root):
         directories[:] = [name for name in directories if name not in SKIP_DIRS]
