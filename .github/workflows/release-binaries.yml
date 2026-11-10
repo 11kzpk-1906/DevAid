@@ -36,26 +36,23 @@ jobs:
             archive: devaid-macos-arm64.zip
 
     steps:
-      # Checkout
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      # Python
       - name: Setup Python
         uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
-      # uv
       - name: Install uv
         uses: astral-sh/setup-uv@v7
 
-      # Dependencies
       - name: Install project dependencies
         run: uv sync --extra dev
 
-      # Build
-      - name: Build standalone executable
+      - name: Build standalone executable (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
         run: |
           uv run --with pyinstaller pyinstaller ^
             --clean ^
@@ -66,23 +63,20 @@ jobs:
             --collect-submodules devaid ^
             --copy-metadata devaid ^
             apps/cli/src/devaid/main.py
-        shell: cmd
-        if: runner.os == 'Windows'
 
       - name: Build standalone executable (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
-          uv run --with pyinstaller pyinstaller \
-            --clean \
-            --noconfirm \
-            --onefile \
-            --name devaid \
-            --paths apps/cli/src \
-            --collect-submodules devaid \
-            --copy-metadata devaid \
+          uv run --with pyinstaller pyinstaller \\
+            --clean \\
+            --noconfirm \\
+            --onefile \\
+            --name devaid \\
+            --paths apps/cli/src \\
+            --collect-submodules devaid \\
+            --copy-metadata devaid \\
             apps/cli/src/devaid/main.py
 
-      # Verify executable
       - name: Test executable
         shell: pwsh
         env:
@@ -94,23 +88,16 @@ jobs:
             throw "Executable not found: $Executable"
           }
 
-          Write-Host "Testing DevAid executable..."
-
           & $Executable --help
-
           if ($LASTEXITCODE -ne 0) {
             throw "DevAid help test failed."
           }
 
           & $Executable version
-
           if ($LASTEXITCODE -ne 0) {
             throw "DevAid version test failed."
           }
 
-          Write-Host "DevAid executable tests passed."
-
-      # Create ZIP
       - name: Create ZIP archive
         shell: pwsh
         env:
@@ -123,14 +110,8 @@ jobs:
             throw "Cannot create archive: executable missing."
           }
 
-          Compress-Archive `
-            -Path $Executable `
-            -DestinationPath $env:ARCHIVE `
-            -Force
+          Compress-Archive -Path $Executable -DestinationPath $env:ARCHIVE -Force
 
-          Write-Host "Created $env:ARCHIVE"
-
-      # Verify ZIP
       - name: Verify ZIP archive
         shell: pwsh
         env:
@@ -140,23 +121,16 @@ jobs:
             throw "ZIP archive was not created."
           }
 
-          $Zip = [System.IO.Compression.ZipFile]::OpenRead(
-            (Resolve-Path $env:ARCHIVE)
-          )
-
+          $Zip = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $env:ARCHIVE))
           try {
             if ($Zip.Entries.Count -eq 0) {
               throw "ZIP archive is empty."
             }
-
-            Write-Host "ZIP archive verified."
-            Write-Host "Files: $($Zip.Entries.Count)"
           }
           finally {
             $Zip.Dispose()
           }
 
-      # Upload
       - name: Upload ZIP artifact
         uses: actions/upload-artifact@v7
         with:
@@ -164,3 +138,47 @@ jobs:
           path: ${{ matrix.archive }}
           if-no-files-found: error
           retention-days: 14
+
+  publish:
+    name: Publish GitHub Release
+    needs: build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all platform archives
+        uses: actions/download-artifact@v7
+        with:
+          pattern: devaid-*.zip
+          path: dist
+          merge-multiple: true
+
+      - name: Verify all expected release assets exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected=(
+            devaid-windows-x64.zip
+            devaid-linux-x64.zip
+            devaid-macos-arm64.zip
+          )
+
+          for asset in "${expected[@]}"; do
+            if [[ ! -s "dist/$asset" ]]; then
+              echo "::error::Required release asset is missing or empty: $asset"
+              exit 1
+            fi
+          done
+
+      - name: Create GitHub Release and upload assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \\
+            dist/devaid-windows-x64.zip \\
+            dist/devaid-linux-x64.zip \\
+            dist/devaid-macos-arm64.zip \\
+            --verify-tag \\
+            --generate-notes
