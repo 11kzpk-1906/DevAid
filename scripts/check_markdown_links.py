@@ -123,7 +123,11 @@ def check_file(path: Path) -> list[str]:
         if not destination.exists():
             errors.append(f"{path}: broken local link '{target}'")
             continue
-        if parsed.fragment and destination.is_file() and destination.suffix.lower() in {".md", ".markdown"}:
+        if (
+            parsed.fragment
+            and destination.is_file()
+            and destination.suffix.lower() in {".md", ".markdown"}
+        ):
             try:
                 destination_text = destination.read_text(encoding="utf-8")
             except (OSError, UnicodeDecodeError):
