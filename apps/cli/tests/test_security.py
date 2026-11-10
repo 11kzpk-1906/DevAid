@@ -58,3 +58,40 @@ def test_security_rejects_invalid_directory(tmp_path: Path) -> None:
 
     assert result.exit_code == 1
     assert "Invalid project directory" in result.output
+
+
+def test_security_detects_sensitive_files_tracked_by_git(tmp_path: Path) -> None:
+    import subprocess
+
+    (tmp_path / ".gitignore").write_text(".env\n", encoding="utf-8")
+    (tmp_path / ".env").write_text("TOKEN=redacted-value\n", encoding="utf-8")
+    (tmp_path / "private.pem").write_text("placeholder private key\n", encoding="utf-8")
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "add", "-f", ".env", "private.pem"],
+        check=True,
+    )
+
+    result = runner.invoke(app, ["security", str(tmp_path)])
+
+    assert result.exit_code == 0
+    assert "Sensitive-looking file is tracked by Git" in result.output
+    assert ".env" in result.output
+    assert "private.pem" in result.output
+    assert "redacted-value" not in result.output
+
+
+def test_security_does_not_flag_env_example_tracked_by_git(tmp_path: Path) -> None:
+    import subprocess
+
+    (tmp_path / ".env.example").write_text("API_KEY=your_key_here\n", encoding="utf-8")
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "add", ".env.example"],
+        check=True,
+    )
+
+    result = runner.invoke(app, ["security", str(tmp_path)])
+
+    assert result.exit_code == 0
+    assert "Sensitive-looking file is tracked by Git" not in result.output
