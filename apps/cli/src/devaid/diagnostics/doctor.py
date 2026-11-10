@@ -21,6 +21,7 @@ from devaid.diagnostics.performance import performance_doctor
 from devaid.diagnostics.python_project import python_doctor
 from devaid.diagnostics.release import release_doctor
 from devaid.diagnostics.security import check_security
+from devaid.diagnostics.security_code import check_security_code
 from devaid.diagnostics.suggestions import show_suggestions
 from devaid.diagnostics.test_doctor import test_doctor
 from devaid.diagnostics.workflows import workflow_doctor
@@ -49,6 +50,7 @@ def run_doctor(path: Path) -> None:
         ("deployment", "Deployment", lambda: check_deployment(root)),
         ("documentation", "Documentation", lambda: check_documentation(root)),
         ("security", "Security hygiene", lambda: check_security(root)),
+        ("security-code", "Static code security", lambda: check_security_code(root)),
         ("tests", "Test readiness", lambda: test_doctor(root)),
         ("git", "Git repository", lambda: git_doctor(root)),
         ("release", "Release readiness", lambda: release_doctor(root)),
