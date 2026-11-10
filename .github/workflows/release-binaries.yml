@@ -67,14 +67,14 @@ jobs:
       - name: Build standalone executable (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
-          uv run --with pyinstaller pyinstaller \
-            --clean \
-            --noconfirm \
-            --onefile \
-            --name devaid \
-            --paths apps/cli/src \
-            --collect-submodules devaid \
-            --copy-metadata devaid \
+          uv run --with pyinstaller pyinstaller \\
+            --clean \\
+            --noconfirm \\
+            --onefile \\
+            --name devaid \\
+            --paths apps/cli/src \\
+            --collect-submodules devaid \\
+            --copy-metadata devaid \\
             apps/cli/src/devaid/main.py
 
       - name: Test executable
@@ -172,13 +172,30 @@ jobs:
             fi
           done
 
+      - name: Generate and verify SHA-256 checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+
+          sha256sum \\
+            devaid-windows-x64.zip \\
+            devaid-linux-x64.zip \\
+            devaid-macos-arm64.zip \\
+            > SHA256SUMS.txt
+
+          test -s SHA256SUMS.txt
+          test "$(wc -l < SHA256SUMS.txt)" -eq 3
+          sha256sum --check SHA256SUMS.txt
+
       - name: Create GitHub Release and upload assets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
-            dist/devaid-windows-x64.zip \
-            dist/devaid-linux-x64.zip \
-            dist/devaid-macos-arm64.zip \
-            --verify-tag \
+          gh release create "$GITHUB_REF_NAME" \\
+            dist/devaid-windows-x64.zip \\
+            dist/devaid-linux-x64.zip \\
+            dist/devaid-macos-arm64.zip \\
+            dist/SHA256SUMS.txt \\
+            --verify-tag \\
             --generate-notes
