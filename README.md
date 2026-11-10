@@ -108,6 +108,7 @@ Run `devaid --help` to see the commands available in your installed version. Com
 | `devaid api URL` | Send a read-only HTTP GET and inspect the response. |
 | `devaid docs PATH` | Check documentation file and section completeness. |
 | `devaid security PATH` | Scan local project files for common secret and security hygiene issues. |
+| `devaid security-code PATH` | Scan Python and JavaScript/TypeScript source for selected risky coding patterns. |
 | `devaid workflow-doctor PATH` | Review GitHub Actions permissions, action pinning, and checkout credential settings. |
 | `devaid docker-doctor PATH` | Review Dockerfiles and Compose files for common security and reliability issues. |
 | `devaid package-doctor PATH` | Check Python and Node.js manifests and lockfile consistency. |
@@ -167,6 +168,16 @@ Most tools process input in the browser tab. No backend is required, and project
 **Limitations:** the Dependency Manifest Checker is not a vulnerability scanner; the License Notes Guide is not legal advice; the API Response Inspector does not send requests; and Dockerfile / Compose checks are heuristic rather than authoritative validators. The browser MVP does not execute the Python CLI or inspect local project folders.
 
 To use the browser tools, open the files in the repository's `web/` directory. The tools and documentation can be hosted as static files.
+
+## Security diagnostics
+
+The CLI includes local, read-only security checks:
+
+- `devaid security .` checks for likely exposed credentials and environment-file hygiene.
+- `devaid security-code .` checks selected Python and JavaScript/TypeScript patterns, including dynamic evaluation, unsafe deserialization, shell execution, weak hashes, and potentially unsafe SQL construction.
+- `devaid workflow-doctor .` and `devaid docker-doctor .` review common CI and container configuration risks.
+
+These checks are heuristic, do not execute project code, and may produce false positives or miss vulnerabilities. They are not a complete security audit. See [Security Diagnostics](docs/security.md).
 
 ## Technology
 

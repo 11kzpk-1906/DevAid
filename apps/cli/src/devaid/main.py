@@ -31,6 +31,7 @@ from devaid.diagnostics.python_project import python_doctor
 from devaid.diagnostics.release import release_doctor
 from devaid.diagnostics.reports import report
 from devaid.diagnostics.security import check_security
+from devaid.diagnostics.security_code import check_security_code
 from devaid.diagnostics.suggestions import show_suggestions
 from devaid.diagnostics.test_doctor import test_doctor
 from devaid.diagnostics.workflows import workflow_doctor
@@ -82,6 +83,7 @@ app.command(name="env")(check_environment)
 app.command(name="api")(inspect_api)
 app.command(name="docs")(check_documentation)
 app.command(name="security")(check_security)
+app.command(name="security-code")(check_security_code)
 app.command(name="workflow-doctor")(workflow_doctor)
 app.command(name="docker-doctor")(docker_doctor)
 app.command(name="package-doctor")(package_doctor)
