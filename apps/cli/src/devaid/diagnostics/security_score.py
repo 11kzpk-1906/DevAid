@@ -204,13 +204,14 @@ def evaluate_security_posture(
     return score, assessed_weight, rows
 
 
-def security_score(path: Path = Path(".")) -> None:
+def security_score(path: str = ".") -> None:
     """Calculate a local security posture score and show actionable checks."""
-    if not path.exists() or not path.is_dir():
+    project_path = Path(path)
+    if not project_path.exists() or not project_path.is_dir():
         console.print("[bold red]Error:[/bold red] Invalid project directory.")
         raise typer.Exit(code=1)
 
-    root = path.resolve()
+    root = project_path.resolve()
     score, assessed_weight, rows = evaluate_security_posture(root)
     table = Table(title=f"DevAid Security Score — {root.name}")
     table.add_column("Status")
