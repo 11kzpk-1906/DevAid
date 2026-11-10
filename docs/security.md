@@ -21,6 +21,10 @@ If a real credential has been committed, removing the file in a later commit is 
 
 The static code scanner checks Python AST calls for dynamic evaluation, shell execution, unsafe pickle deserialization, YAML loading without an explicit loader, subprocess calls using `shell=True`, weak MD5/SHA-1 hashing, and potentially dynamic SQL query construction. JavaScript/TypeScript checks cover dynamic `eval`, `Function`, `innerHTML` assignment, and Node child-process `exec` calls.
 
+## Automated dependency maintenance
+
+The repository configures Dependabot to check Python dependencies and GitHub Actions weekly. Dependabot may open update pull requests; review the changelog and CI results before merging. Automated version updates do not replace vulnerability triage or a dependency audit.
+
 ## Safety and limitations
 
 - Source code is read as text and is never executed or uploaded.
