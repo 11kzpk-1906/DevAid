@@ -88,6 +88,40 @@ def _scan_file(file_path: Path, root: Path) -> list[tuple[str, str, int, str]]:
     return findings
 
 
+
+def _tracked_sensitive_files(root: Path) -> list[str]:
+    """Return tracked paths that commonly contain credentials or private keys."""
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "ls-files", "--cached", "--"],
+            capture_output=True,
+            check=False,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    if result.returncode != 0:
+        return []
+
+    sensitive_names = {
+        ".env", ".env.local", ".env.development", ".env.production",
+        "id_rsa", "id_ed25519", "credentials.json", "service-account.json",
+    }
+    sensitive_suffixes = {".pem", ".p12", ".pfx", ".key"}
+    findings = []
+    for raw_path in result.stdout.splitlines():
+        candidate = Path(raw_path)
+        name = candidate.name.lower()
+        if name in {".env.example", ".env.template", ".env.sample"}:
+            continue
+        if name in sensitive_names or candidate.suffix.lower() in sensitive_suffixes:
+            findings.append(raw_path)
+    return findings
+
+
 def check_security(path: Path) -> None:
     """Check a local project for common secret-exposure risks."""
     if not path.exists() or not path.is_dir():
@@ -120,6 +154,17 @@ def check_security(path: Path) -> None:
             else "Add .env and .env.* to .gitignore",
         )
     )
+
+    for tracked_path in _tracked_sensitive_files(root):
+        findings.append(
+            (
+                "ERROR",
+                tracked_path,
+                0,
+                ("Sensitive-looking file is tracked by Git; remove it from history "
+                 "and rotate any exposed credentials"),
+            )
+        )
 
     scanned = 0
     for current, directories, filenames in os.walk(root):

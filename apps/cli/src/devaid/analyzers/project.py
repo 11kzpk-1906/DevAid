@@ -18,6 +18,11 @@ def _read_manifest_text(path: Path) -> str:
         "build.gradle",
         "Cargo.toml",
         "go.mod",
+        "composer.json",
+        "Gemfile",
+        "pubspec.yaml",
+        "Package.swift",
+        "mix.exs",
     )
     contents: list[str] = []
     for name in manifest_names:
@@ -43,6 +48,16 @@ def _detect_frameworks(manifest_text: str) -> list[str]:
         "Svelte": ('"svelte"', "'svelte'"),
         "Express": ('"express"', "'express'"),
         "Spring Boot": ("spring-boot",),
+        "Laravel": ("laravel/framework",),
+        "Symfony": ("symfony/",),
+        "Ruby on Rails": ("rails",),
+        "Flutter": ("flutter",),
+        "Gin": ("github.com/gin-gonic/gin",),
+        "Fiber": ("github.com/gofiber/fiber",),
+        "Axum": ("axum",),
+        "Actix Web": ("actix-web",),
+        "ASP.NET Core": ("microsoft.aspnetcore",),
+        "Ktor": ("io.ktor",),
     }
     return [
         framework
@@ -63,11 +78,44 @@ def _detect_package_managers(path: Path) -> list[str]:
         "Bun": ("bun.lock", "bun.lockb"),
         "Cargo": ("Cargo.lock",),
         "Go modules": ("go.sum",),
+        "Composer": ("composer.lock",),
+        "Bundler": ("Gemfile.lock",),
+        "Pub": ("pubspec.lock",),
+        "Swift Package Manager": ("Package.resolved",),
+        "Mix": ("mix.lock",),
+        "Gradle": ("gradle.lockfile",),
+        "NuGet": ("packages.lock.json",),
     }
     return [
         manager
         for manager, files in lockfiles.items()
         if any((path / filename).is_file() for filename in files)
+    ]
+
+
+def _detect_languages(path: Path) -> list[str]:
+    """Detect languages from common project manifest and source markers."""
+    markers = {
+        "Python": ["pyproject.toml", "requirements.txt", "setup.py"],
+        "Node.js": ["package.json"],
+        "Rust": ["Cargo.toml"],
+        "Go": ["go.mod"],
+        "Java": ["pom.xml", "build.gradle", "build.gradle.kts"],
+        "Kotlin": ["build.gradle.kts", "settings.gradle.kts"],
+        "PHP": ["composer.json"],
+        "Ruby": ["Gemfile"],
+        "Dart": ["pubspec.yaml"],
+        "Swift": ["Package.swift"],
+        "Elixir": ["mix.exs"],
+        "C# / .NET": ["*.csproj", "*.sln"],
+        "C / C++": ["CMakeLists.txt", "Makefile"],
+    }
+
+    return [
+        language
+        for language, files in markers.items()
+        if any((path / file).exists() for file in files)
+        or any(any(path.glob(file)) for file in files if "*" in file)
     ]
 
 
@@ -77,19 +125,7 @@ def analyze_project(path: Path) -> None:
         console.print("[bold red]Error:[/bold red] Invalid project directory.")
         raise SystemExit(1)
 
-    markers = {
-        "Python": ["pyproject.toml", "requirements.txt", "setup.py"],
-        "Node.js": ["package.json"],
-        "Rust": ["Cargo.toml"],
-        "Go": ["go.mod"],
-        "Java": ["pom.xml", "build.gradle"],
-    }
-
-    detected = [
-        language
-        for language, files in markers.items()
-        if any((path / file).exists() for file in files)
-    ]
+    detected = _detect_languages(path)
     manifest_text = _read_manifest_text(path)
     frameworks = _detect_frameworks(manifest_text)
     package_managers = _detect_package_managers(path)

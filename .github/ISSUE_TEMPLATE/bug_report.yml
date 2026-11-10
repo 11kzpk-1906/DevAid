@@ -1,0 +1,43 @@
+name: Bug report
+description: Report a reproducible problem in DevAid.
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "Please do not include passwords, API keys, private source code, or other sensitive information."
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the issue clearly.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Run ... 2. Select ... 3. Observe ..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: DevAid version or commit
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Python CLI
+        - Browser tools
+        - Documentation
+        - Other
+    validations:
+      required: true

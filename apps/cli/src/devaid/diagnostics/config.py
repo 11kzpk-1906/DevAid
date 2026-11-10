@@ -79,6 +79,7 @@ def check_config(path: Path) -> None:
 
     for filename, validator in (
         ("pyproject.toml", _validate_toml),
+        (".devaid.toml", _validate_toml),
         ("package.json", _validate_json),
     ):
         config_file = path / filename

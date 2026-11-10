@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: DevAid documentation
+    url: https://github.com/11kzpk-1906/DevAid/tree/main/docs
+    about: Read the project documentation before opening a support question.
