@@ -31,3 +31,6 @@ jobs:
 
       - name: Run lint
         run: uv run ruff check .
+
+      - name: Check local Markdown links
+        run: uv run python scripts/check_markdown_links.py
