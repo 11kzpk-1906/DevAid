@@ -16,7 +16,7 @@ runner = CliRunner()
 
 def test_reads_pinned_requirements(tmp_path: Path) -> None:
     (tmp_path / "requirements.txt").write_text(
-        "requests==2.31.0\\nflask>=3\\n",
+        "requests==2.31.0\nflask>=3\n",
         encoding="utf-8",
     )
     assert discover_dependencies(tmp_path) == [
@@ -34,7 +34,7 @@ def test_reads_node_lock(tmp_path: Path) -> None:
 
 def test_offline_never_queries_osv(tmp_path: Path, monkeypatch) -> None:
     (tmp_path / "requirements.txt").write_text(
-        "requests==2.31.0\\n",
+        "requests==2.31.0\n",
         encoding="utf-8",
     )
 
@@ -49,7 +49,7 @@ def test_offline_never_queries_osv(tmp_path: Path, monkeypatch) -> None:
 
 def test_reports_vulnerability_and_fixed_version(tmp_path: Path, monkeypatch) -> None:
     (tmp_path / "requirements.txt").write_text(
-        "requests==2.19.0\\n",
+        "requests==2.19.0\n",
         encoding="utf-8",
     )
     advisory = {
@@ -80,7 +80,7 @@ def test_reports_vulnerability_and_fixed_version(tmp_path: Path, monkeypatch) ->
 
 def test_partial_timeout_is_reported(tmp_path: Path, monkeypatch) -> None:
     (tmp_path / "requirements.txt").write_text(
-        "requests==2.31.0\\nflask==3.0.0\\n",
+        "requests==2.31.0\nflask==3.0.0\n",
         encoding="utf-8",
     )
 
@@ -96,7 +96,7 @@ def test_partial_timeout_is_reported(tmp_path: Path, monkeypatch) -> None:
 
 def test_vuln_cli_offline_json(tmp_path: Path) -> None:
     (tmp_path / "requirements.txt").write_text(
-        "requests==2.31.0\\n",
+        "requests==2.31.0\n",
         encoding="utf-8",
     )
     result = runner.invoke(
