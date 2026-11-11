@@ -33,9 +33,9 @@ from devaid.diagnostics.reports import report
 from devaid.diagnostics.security import check_security
 from devaid.diagnostics.security_code import check_security_code
 from devaid.diagnostics.security_score import security_score
-from devaid.diagnostics.vulnerabilities import scan_vulnerabilities
 from devaid.diagnostics.suggestions import show_suggestions
 from devaid.diagnostics.test_doctor import test_doctor
+from devaid.diagnostics.vulnerabilities import scan_vulnerabilities
 from devaid.diagnostics.workflows import workflow_doctor
 from devaid.plugins import discover_analyzer_plugins, run_analyzer_plugin
 from devaid.settings import create_default_config
@@ -51,6 +51,7 @@ BACKUP_OUTPUT_OPTION = typer.Option(None, "--output", "-o")
 BACKUP_VERIFY_ARCHIVE_ARGUMENT = typer.Argument(...)
 RESTORE_ARCHIVE_ARGUMENT = typer.Argument(...)
 RESTORE_DESTINATION_OPTION = typer.Option(..., "--destination", "-d")
+VULN_PATH_ARGUMENT = typer.Argument(Path("."))
 SNAPSHOT_OUTPUT_OPTION = typer.Option(None, "--output", "-o")
 SNAPSHOT_BEFORE_ARGUMENT = typer.Argument(...)
 SNAPSHOT_AFTER_ARGUMENT = typer.Argument(...)
@@ -267,7 +268,7 @@ def plugin_run(name: str, path: Path = Path(".")) -> None:
 
 @app.command(name="vuln")
 def vuln_command(
-    path: Path = typer.Argument(Path(".")),
+    path: Path = VULN_PATH_ARGUMENT,
     offline: bool = typer.Option(False, "--offline", help="Do not contact OSV.dev."),
     output_format: str = typer.Option("table", "--format", help="Output format: table or json."),
 ) -> None:
@@ -287,7 +288,14 @@ def vuln_command(
     for column in ("Package", "Version", "Ecosystem", "ID", "Severity", "Fixed version"):
         table.add_column(column)
     for finding in findings:
-        table.add_row(str(finding["package"]), str(finding["version"]), str(finding["ecosystem"]), str(finding["id"]), str(finding["severity"]), str(finding["fixed_versions"]))
+        table.add_row(
+            str(finding["package"]),
+            str(finding["version"]),
+            str(finding["ecosystem"]),
+            str(finding["id"]),
+            str(finding["severity"]),
+            str(finding["fixed_versions"]),
+        )
     console.print(table)
     console.print(f"Dependencies checked: {result['checked']}")
     console.print(f"Vulnerabilities found: {len(findings)}")
