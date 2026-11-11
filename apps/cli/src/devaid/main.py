@@ -1,9 +1,11 @@
+import json
 import zipfile
 from pathlib import Path
 
 import typer
 from rich.console import Console
 from rich.prompt import Prompt
+from rich.table import Table
 
 from devaid import __version__
 from devaid.analyzers.project import analyze_project
