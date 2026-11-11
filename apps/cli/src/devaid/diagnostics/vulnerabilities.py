@@ -11,7 +11,7 @@ from urllib.request import Request, urlopen
 
 OSV_QUERY_URL = "https://api.osv.dev/v1/query"
 _PINNED = re.compile(
-    r"^([A-Za-z0-9][A-Za-z0-9._-]*)\\s*==\\s*"
+    r"^([A-Za-z0-9][A-Za-z0-9._-]*)\s*==\s*"
     r"([A-Za-z0-9][A-Za-z0-9.+!_-]*)"
 )
 
