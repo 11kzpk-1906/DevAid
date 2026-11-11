@@ -2,14 +2,14 @@
 import json
 from pathlib import Path
 
-from typer.testing import CliRunner
-
 from devaid.diagnostics.vulnerabilities import (
     Dependency,
     discover_dependencies,
     scan_vulnerabilities,
 )
 from devaid.main import app
+
+from typer.testing import CliRunner
 
 runner = CliRunner()
 
