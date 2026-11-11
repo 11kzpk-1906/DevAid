@@ -31,6 +31,7 @@ from devaid.diagnostics.reports import report
 from devaid.diagnostics.security import check_security
 from devaid.diagnostics.security_code import check_security_code
 from devaid.diagnostics.security_score import security_score
+from devaid.diagnostics.vulnerabilities import scan_vulnerabilities
 from devaid.diagnostics.suggestions import show_suggestions
 from devaid.diagnostics.test_doctor import test_doctor
 from devaid.diagnostics.workflows import workflow_doctor
@@ -261,6 +262,36 @@ def plugin_run(name: str, path: Path = Path(".")) -> None:
     except Exception as error:
         console.print(f"[bold red]Plugin failed:[/bold red] {error}")
         raise typer.Exit(code=1) from error
+
+@app.command(name="vuln")
+def vuln_command(
+    path: Path = Path("."),
+    offline: bool = typer.Option(False, "--offline", help="Do not contact OSV.dev."),
+    output_format: str = typer.Option("table", "--format", help="Output format: table or json."),
+) -> None:
+    """Check pinned dependencies against OSV.dev."""
+    if not path.exists() or not path.is_dir():
+        console.print("[bold red]Error:[/bold red] Invalid project directory.")
+        raise typer.Exit(code=1)
+    if output_format not in {"table", "json"}:
+        console.print("[bold red]Error:[/bold red] --format must be table or json.")
+        raise typer.Exit(code=2)
+    result = scan_vulnerabilities(path, offline=offline)
+    if output_format == "json":
+        console.print_json(json.dumps(result, sort_keys=True))
+        return
+    findings = result["findings"]
+    table = Table(title=f"DevAid Vulnerability Scan — {path.resolve().name}")
+    for column in ("Package", "Version", "Ecosystem", "ID", "Severity", "Fixed version"):
+        table.add_column(column)
+    for finding in findings:
+        table.add_row(str(finding["package"]), str(finding["version"]), str(finding["ecosystem"]), str(finding["id"]), str(finding["severity"]), str(finding["fixed_versions"]))
+    console.print(table)
+    console.print(f"Dependencies checked: {result['checked']}")
+    console.print(f"Vulnerabilities found: {len(findings)}")
+    console.print(str(result["notice"]))
+    for error in result["errors"]:
+        console.print(f"Could not check: {error}")
 
 if __name__ == "__main__":
     app()
