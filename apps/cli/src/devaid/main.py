@@ -265,7 +265,7 @@ def plugin_run(name: str, path: Path = Path(".")) -> None:
 
 @app.command(name="vuln")
 def vuln_command(
-    path: Path = Path("."),
+    path: Path = typer.Argument(Path(".")),
     offline: bool = typer.Option(False, "--offline", help="Do not contact OSV.dev."),
     output_format: str = typer.Option("table", "--format", help="Output format: table or json."),
 ) -> None:
