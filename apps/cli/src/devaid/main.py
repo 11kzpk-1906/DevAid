@@ -1,5 +1,3 @@
-"""DevAid CLI entry point."""
-
 import zipfile
 from pathlib import Path
 
@@ -40,7 +38,7 @@ from devaid.plugins import discover_analyzer_plugins, run_analyzer_plugin
 from devaid.settings import create_default_config
 
 app = typer.Typer(
-    name="devaid",
+    name="DevAid",
     help="An open-source toolkit for developers.",
     no_args_is_help=True,
 )

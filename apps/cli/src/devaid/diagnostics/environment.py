@@ -1,5 +1,3 @@
-"""Local development environment diagnostics."""
-
 import platform
 import shutil
 import sys

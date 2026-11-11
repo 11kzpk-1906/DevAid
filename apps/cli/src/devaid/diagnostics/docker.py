@@ -1,5 +1,3 @@
-"""Offline checks for Dockerfiles and Docker Compose configuration."""
-
 import re
 from pathlib import Path
 

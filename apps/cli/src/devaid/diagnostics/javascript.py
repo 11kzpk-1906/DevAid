@@ -1,4 +1,3 @@
-"""Static JavaScript and Node.js project checks."""
 import json
 from pathlib import Path
 

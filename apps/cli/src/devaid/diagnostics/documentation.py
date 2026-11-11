@@ -1,5 +1,3 @@
-"""Offline documentation completeness checks."""
-
 from pathlib import Path
 
 import typer

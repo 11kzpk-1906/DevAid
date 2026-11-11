@@ -1,5 +1,3 @@
-"""Create, verify, and safely restore local project archives."""
-
 from __future__ import annotations
 
 import hashlib
@@ -49,7 +47,6 @@ def _sha256(data: bytes) -> str:
 
 
 def backup_project(source: Path, output: Path | None = None) -> Path:
-    """Create a ZIP backup, excluding caches, VCS data, and common secrets."""
     source = source.expanduser().resolve()
     if not source.is_dir():
         raise ValueError(f"Project directory does not exist: {source}")
@@ -102,7 +99,6 @@ def backup_project(source: Path, output: Path | None = None) -> Path:
 
 
 def verify_backup(archive_path: Path) -> int:
-    """Validate archive paths and every file's recorded size and SHA-256."""
     with zipfile.ZipFile(archive_path, "r") as archive:
         infos = archive.infolist()
         names = [info.filename for info in infos]
@@ -154,7 +150,6 @@ def verify_backup(archive_path: Path) -> int:
 
 
 def restore_backup(archive_path: Path, destination: Path) -> int:
-    """Restore into a new directory; never overwrite an existing destination."""
     archive_path = archive_path.expanduser().resolve()
     destination = destination.expanduser().resolve()
     if destination.exists():

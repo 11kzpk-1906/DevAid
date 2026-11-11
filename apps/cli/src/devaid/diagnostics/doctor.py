@@ -1,5 +1,3 @@
-"""Run the complete set of local project diagnostics."""
-
 from pathlib import Path
 
 import typer

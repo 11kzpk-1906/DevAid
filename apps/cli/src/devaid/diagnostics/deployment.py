@@ -1,5 +1,3 @@
-"""Offline deployment configuration diagnostics."""
-
 import json
 import tomllib
 from pathlib import Path

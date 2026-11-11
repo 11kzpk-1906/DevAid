@@ -1,5 +1,3 @@
-"""Check the latest published DevAid release without modifying the installation."""
-
 from __future__ import annotations
 
 import json

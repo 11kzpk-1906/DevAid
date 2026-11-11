@@ -1,5 +1,3 @@
-"""Offline dependency manifest inspector."""
-
 import json
 import re
 import tomllib

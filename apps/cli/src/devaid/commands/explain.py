@@ -1,5 +1,3 @@
-"""Rule-based Python error analysis with causes, fixes, and examples."""
-
 import re
 from dataclasses import dataclass
 

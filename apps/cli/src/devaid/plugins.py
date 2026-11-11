@@ -1,5 +1,3 @@
-"""Optional third-party analyzer plugin discovery and execution."""
-
 from importlib.metadata import EntryPoint, entry_points
 from pathlib import Path
 

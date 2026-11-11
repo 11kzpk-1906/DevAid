@@ -1,7 +1,6 @@
-"""Offline configuration hygiene checks."""
-
 import json
 import tomllib
+from abc import ABC, abstractmethod
 from pathlib import Path
 
 import typer
@@ -9,6 +8,47 @@ from rich.console import Console
 from rich.table import Table
 
 console = Console()
+
+
+class error(Exception, ABC):
+    """Base class for configuration-related issues."""
+
+    def __init__(self, message: str, code: str = "CONFIG_ERROR") -> None:
+        super().__init__(message)
+        self._message = message
+        self._code = code
+
+    @property
+    @abstractmethod
+    def code(self) -> str:
+        """Stable, machine-readable error code."""
+
+    @property
+    @abstractmethod
+    def message(self) -> str:
+        """Human-readable description of the failure."""
+
+    def __str__(self) -> str:
+        return f"{self.code}: {self.message}" if self.code else self.message
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(code={self.code!r}, message={self.message!r})"
+
+    def to_dict(self) -> dict[str, str]:
+        """Convert the error into a serializable dictionary."""
+        return {"code": self.code, "message": self.message}
+
+
+class ConfigError(error):
+    """Concrete configuration error with useful diagnostics for CLI output."""
+
+    @property
+    def code(self) -> str:
+        return self._code
+
+    @property
+    def message(self) -> str:
+        return self._message
 
 
 def _validate_json(path: Path) -> str | None:
