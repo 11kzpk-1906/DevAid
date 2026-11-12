@@ -124,11 +124,11 @@ def check_config(path: Path) -> None:
     ):
         config_file = path / filename
         if config_file.is_file():
-            error = validator(config_file)
-            if error is None:
+            validation_error = validator(config_file)
+            if validation_error is None:
                 findings.append((filename, "PASS", "Syntax is valid"))
             else:
-                findings.append((filename, "ERROR", error))
+                findings.append((filename, "ERROR", validation_error))
 
     if (path / ".env").is_file():
         if (path / ".env.example").is_file():
