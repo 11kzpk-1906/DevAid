@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from pathlib import Path
 
 import typer
@@ -41,7 +42,7 @@ def run_doctor(path: Path) -> None:
         "and no project source is uploaded.[/dim]\n"
     )
 
-    checks = (
+    checks: tuple[tuple[str, str, Callable[[], None]], ...] = (
         ("health", "Project health", lambda: health_check(root)),
         ("dependencies", "Dependencies", lambda: check_dependencies(root)),
         ("configuration", "Configuration", lambda: check_config(root)),
@@ -79,7 +80,7 @@ def run_doctor(path: Path) -> None:
     completed = 0
     for index, (_, label, check) in enumerate(active_checks, start=1):
         console.print(Rule(f"[bold]{index}/{len(active_checks)} · {label}[/bold]"))
-        check()
+        check()  # All registered diagnostics are normalized to a no-argument callable.
         completed += 1
 
     console.print(Rule("[bold cyan]Prioritized fix suggestions[/bold cyan]"))

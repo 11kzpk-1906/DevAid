@@ -138,6 +138,34 @@ def query_osv(dependency: Dependency) -> list[dict[str, object]]:
     return [item for item in vulns if isinstance(item, dict)]
 
 
+def _fixed_versions(item: dict[str, object]) -> set[str]:
+    """Extract fixed versions from an OSV advisory without trusting its JSON shape."""
+    fixed: set[str] = set()
+    affected_items = item.get("affected", [])
+    if not isinstance(affected_items, list):
+        return fixed
+
+    for affected in affected_items:
+        if not isinstance(affected, dict):
+            continue
+        ranges = affected.get("ranges", [])
+        if not isinstance(ranges, list):
+            continue
+        for version_range in ranges:
+            if not isinstance(version_range, dict):
+                continue
+            events = version_range.get("events", [])
+            if not isinstance(events, list):
+                continue
+            for event in events:
+                if not isinstance(event, dict):
+                    continue
+                fixed_version = event.get("fixed")
+                if isinstance(fixed_version, str) and fixed_version:
+                    fixed.add(fixed_version)
+    return fixed
+
+
 def scan_vulnerabilities(
     path: Path, offline: bool = False
 ) -> VulnerabilityReport:
@@ -163,15 +191,7 @@ def scan_vulnerabilities(
     for dep in discover_dependencies(path):
         try:
             for item in query_osv(dep):
-                fixed = set()
-                for affected in item.get("affected", []):
-                    for version_range in affected.get("ranges", []):
-                        events = version_range.get("events", [])
-                        fixed.update(
-                            str(event["fixed"])
-                            for event in events
-                            if event.get("fixed")
-                        )
+                fixed = _fixed_versions(item)
                 database = item.get("database_specific", {})
                 severity = (
                     str(database.get("severity", "Unknown"))

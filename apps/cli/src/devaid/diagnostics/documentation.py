@@ -82,19 +82,19 @@ def check_documentation(path: Path) -> None:
     table.add_column("Result")
     table.add_column("Details")
 
-    for label, passed, details in checks:
-        status = "[green]PASS[/green]" if passed else "[yellow]REVIEW[/yellow]"
+    for label, passed_check, details in checks:
+        status = "[green]PASS[/green]" if passed_check else "[yellow]REVIEW[/yellow]"
         table.add_row(label, status, details)
 
-    passed = sum(result for _, result, _ in checks)
+    passed_count = sum(result for _, result, _ in checks)
     total = len(checks)
-    score = round((passed / total) * 100) if total else 0
-    review = total - passed
+    score = round((passed_count / total) * 100) if total else 0
+    review = total - passed_count
 
     console.print(table)
     console.print(
         Panel(
-            f"[bold]{score}/100[/bold]  •  {passed}/{total} checks passed  •  "
+            f"[bold]{score}/100[/bold]  •  {passed_count}/{total} checks passed  •  "
             f"{review} items to review",
             title="Documentation score",
             border_style="cyan",

@@ -25,6 +25,9 @@ devaid = "devaid.main:app"
 [tool.hatch.build.targets.wheel]
 packages = ["apps/cli/src/devaid"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"apps/cli/src/devaid/py.typed" = "devaid/py.typed"
+
 [tool.pytest.ini_options]
 testpaths = ["apps/cli/tests", "tests"]
 pythonpath = [".", "apps/cli/src"]
