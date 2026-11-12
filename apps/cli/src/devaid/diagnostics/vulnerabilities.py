@@ -6,6 +6,7 @@ import re
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TypedDict
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -21,6 +22,29 @@ class Dependency:
     name: str
     version: str
     ecosystem: str
+
+
+class VulnerabilityFinding(TypedDict):
+    """A normalized vulnerability finding returned by an OSV scan."""
+
+    package: str
+    version: str
+    ecosystem: str
+    id: str
+    summary: str
+    severity: str
+    fixed_versions: str
+
+
+class VulnerabilityReport(TypedDict):
+    """Structured result returned by the dependency vulnerability scanner."""
+
+    project: str
+    mode: str
+    checked: int
+    findings: list[VulnerabilityFinding]
+    errors: list[str]
+    notice: str
 
 
 def _requirements(path: Path) -> list[Dependency]:
@@ -114,14 +138,16 @@ def query_osv(dependency: Dependency) -> list[dict[str, object]]:
     return [item for item in vulns if isinstance(item, dict)]
 
 
-def scan_vulnerabilities(path: Path, offline: bool = False) -> dict[str, object]:
+def scan_vulnerabilities(
+    path: Path, offline: bool = False
+) -> VulnerabilityReport:
     """Scan pinned dependencies; offline mode never contacts OSV."""
     notice = (
         "Offline mode: current OSV advisories were not checked."
         if offline
         else "Only package names, versions, and ecosystems are sent to OSV.dev."
     )
-    report: dict[str, object] = {
+    report: VulnerabilityReport = {
         "project": path.resolve().name,
         "mode": "offline" if offline else "online",
         "checked": 0,
@@ -132,8 +158,8 @@ def scan_vulnerabilities(path: Path, offline: bool = False) -> dict[str, object]
     if offline:
         return report
 
-    findings = []
-    errors = []
+    findings: list[VulnerabilityFinding] = []
+    errors: list[str] = []
     for dep in discover_dependencies(path):
         try:
             for item in query_osv(dep):
@@ -163,7 +189,7 @@ def scan_vulnerabilities(path: Path, offline: bool = False) -> dict[str, object]
                         "fixed_versions": ", ".join(sorted(fixed)) or "Not listed",
                     }
                 )
-            report["checked"] = int(report["checked"]) + 1
+            report["checked"] += 1
         except (
             HTTPError,
             URLError,
@@ -178,8 +204,8 @@ def scan_vulnerabilities(path: Path, offline: bool = False) -> dict[str, object]
     report["findings"] = sorted(
         findings,
         key=lambda item: (
-            str(item["package"]).casefold(),
-            str(item["id"]),
+            item["package"].casefold(),
+            item["id"],
         ),
     )
     report["errors"] = errors
