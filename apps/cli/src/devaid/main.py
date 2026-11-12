@@ -38,7 +38,7 @@ from devaid.diagnostics.test_doctor import test_doctor
 from devaid.diagnostics.vulnerabilities import scan_vulnerabilities
 from devaid.diagnostics.workflows import workflow_doctor
 from devaid.plugins import discover_analyzer_plugins, run_analyzer_plugin
-from devaid.settings import create_default_config
+from devaid.seCttings import create_default_config
 
 app = typer.Typer(
     name="DevAid",
