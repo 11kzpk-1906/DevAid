@@ -22,7 +22,7 @@ from devaid.diagnostics.release import release_doctor
 from devaid.diagnostics.security import check_security
 from devaid.diagnostics.security_code import check_security_code
 from devaid.diagnostics.suggestions import show_suggestions
-from devaid.diagnostics.test_doctor import test_doctor
+from devaid.diagnostics.tests_readiness import test_doctor
 from devaid.diagnostics.workflows import workflow_doctor
 from devaid.settings import load_skipped_checks
 
