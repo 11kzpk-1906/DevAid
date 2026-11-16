@@ -33,9 +33,9 @@ DevAid is designed to be useful without AI. Local-first behavior is preferred, a
 
 ## Download DevAid
 
-The latest stable release is **v0.2.0**.
+The current development version is **v0.3.0**. The release is being polished; until its publication, **v0.2.0 remains the latest stable download**.
 
-**[Download DevAid v0.2.0](https://github.com/11kzpk-1906/DevAid/releases/tag/v0.2.0)**
+**[View all DevAid releases](https://github.com/11kzpk-1906/DevAid/releases)**
 
 | Platform | Release asset | Architecture |
 | --- | --- | --- |
@@ -103,7 +103,7 @@ A matching SHA-256 value confirms the downloaded file matches the published chec
 
 ## Available CLI commands
 
-Run `devaid --help` to see the commands available in your installed version. Commands that accept a project path generally use the current directory when you pass `.`.
+Run `devaid --help` to see the commands available in your installed version. Commands that accept a project path generally use the current directory when you pass `.`. Network-dependent checks are opt-in and documented below.
 
 | Command | Purpose |
 | --- | --- |
@@ -284,8 +284,10 @@ DevAid is being developed incrementally. Completed work includes:
 - [x] Interactive CLI dashboard, custom diagnostic profiles, and analyzer plugin extension points.
 - [x] Static browser utilities for common developer workflows.
 - [x] Cross-platform binary build workflow and v0.1.0 release.
+- [x] Guided onboarding, update checks, local backup and restore, and project snapshots (v0.2.0).
+- [x] Static source security checks, security posture scoring, OSV dependency vulnerability checks, and release checksum validation (v0.3.0 development line).
 
-Potential next areas include smoother onboarding, update notifications, broader platform testing, and richer diagnostic explanations. Roadmap items are not promises or claims of completed functionality.
+The next development cycle will focus on improving diagnostic clarity, report quality, and day-to-day developer workflows. Roadmap items are not promises or claims of completed functionality.
 
 ## Contributing
 
