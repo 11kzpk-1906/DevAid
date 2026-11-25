@@ -80,6 +80,29 @@ def _manifest_packages(root: Path) -> list[dict[str, Any]]:
                     packages[(name.lower(), version, "npm")] = {"name": name, "version": version, "ecosystem": "npm", "license": "unknown"}
         except (OSError, json.JSONDecodeError, AttributeError):
             pass
+    lockfile = root / "package-lock.json"
+    if lockfile.is_file():
+        try:
+            lock_data = json.loads(lockfile.read_text(encoding="utf-8"))
+            for package_path, metadata in lock_data.get("packages", {}).items():
+                if not package_path or not isinstance(metadata, dict):
+                    continue
+                package_name = metadata.get("name") or package_path.rsplit("node_modules/", 1)[-1]
+                version = metadata.get("version", "unknown")
+                declared_license = metadata.get("license", "unknown")
+                license_id = (
+                    declared_license
+                    if isinstance(declared_license, str) and declared_license in SPDX_KNOWN
+                    else "unknown"
+                )
+                packages[(package_name.lower(), version, "npm")] = {
+                    "name": package_name,
+                    "version": version,
+                    "ecosystem": "npm",
+                    "license": license_id,
+                }
+        except (OSError, json.JSONDecodeError, AttributeError):
+            pass
     return sorted(packages.values(), key=lambda p: (p["ecosystem"], p["name"].lower()))
 
 
@@ -96,7 +119,7 @@ def generate_sbom(path: Path, output: Path, fmt: str, overwrite: bool = False) -
                "metadata": {"timestamp": now, "tools": [{"vendor": "DevAid", "name": "devaid"}]},
                "components": [{"type": "library", "name": p["name"], "version": p["version"],
                                "purl": f"pkg:{p['ecosystem']}/{p['name']}@{p['version']}",
-                               "licenses": []} for p in packages]}
+                               "licenses": ([{"license": {"id": p["license"]}}] if p["license"] in SPDX_KNOWN else [])} for p in packages]}
     else:
         doc = {"spdxVersion": "SPDX-2.3", "dataLicense": "CC0-1.0",
                "SPDXID": "SPDXRef-DOCUMENT", "name": root.name,
@@ -105,7 +128,7 @@ def generate_sbom(path: Path, output: Path, fmt: str, overwrite: bool = False) -
                "packages": [{"name": p["name"], "SPDXID": f"SPDXRef-Package-{i}",
                              "versionInfo": p["version"], "downloadLocation": "NOASSERTION",
                              "filesAnalyzed": False, "licenseConcluded": "NOASSERTION",
-                             "licenseDeclared": "NOASSERTION"} for i, p in enumerate(packages, 1)]}
+                             "licenseDeclared": p["license"] if p["license"] in SPDX_KNOWN else "NOASSERTION"} for i, p in enumerate(packages, 1)]}
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
     return {"format": fmt, "packages": len(packages), "output": str(output)}
