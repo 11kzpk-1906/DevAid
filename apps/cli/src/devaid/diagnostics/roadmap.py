@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Local-first roadmap diagnostics: SBOM, secrets, SARIF, licenses, Git, coverage, history and explorer."""
 from __future__ import annotations
 
