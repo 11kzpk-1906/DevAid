@@ -2,6 +2,7 @@
 """Local-first roadmap diagnostics: SBOM, secrets, SARIF, licenses, Git, coverage, history and explorer."""
 from __future__ import annotations
 
+import fnmatch
 import hashlib
 import json
 import os
@@ -152,8 +153,42 @@ def generate_sbom(path: Path, output: Path, fmt: str, overwrite: bool = False) -
                              "filesAnalyzed": False, "licenseConcluded": "NOASSERTION",
                              "licenseDeclared": p["license"] if p["license"] in SPDX_KNOWN else "NOASSERTION"} for i, p in enumerate(packages, 1)]}
     output.parent.mkdir(parents=True, exist_ok=True)
+    validate_sbom_document(doc, fmt)
     output.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
     return {"format": fmt, "packages": len(packages), "output": str(output)}
+
+
+def _secret_exclusions(root: Path) -> list[str]:
+    patterns = [".env.example", ".env.sample", ".env.template"]
+    ignore_file = root / ".gitignore"
+    if ignore_file.is_file():
+        try:
+            patterns.extend(
+                line.strip()
+                for line in ignore_file.read_text(encoding="utf-8").splitlines()
+                if line.strip() and not line.lstrip().startswith("#") and not line.startswith("!")
+            )
+        except (OSError, UnicodeDecodeError):
+            pass
+    config_file = root / ".devaid.toml"
+    if config_file.is_file():
+        try:
+            config = tomllib.loads(config_file.read_text(encoding="utf-8"))
+            configured = config.get("security", {}).get("exclude", [])
+            if isinstance(configured, list):
+                patterns.extend(item for item in configured if isinstance(item, str))
+        except (OSError, ValueError, tomllib.TOMLDecodeError, AttributeError):
+            pass
+    return patterns
+
+
+def _is_secret_excluded(relative: str, patterns: list[str]) -> bool:
+    normalized = relative.replace("\\", "/")
+    return any(
+        fnmatch.fnmatch(normalized, pattern)
+        or fnmatch.fnmatch(normalized, f"**/{pattern}")
+        for pattern in patterns
+    )
 
 
 def scan_secrets(path: Path) -> list[dict[str, Any]]:
@@ -161,8 +196,10 @@ def scan_secrets(path: Path) -> list[dict[str, Any]]:
     if not root.is_dir():
         raise ValueError("project path must be an existing directory")
     results = []
+    exclusions = _secret_exclusions(root)
     for file in _files(root):
-        if file.name.lower() in {".env.example", ".env.sample", ".env.template"}:
+        relative = file.relative_to(root).as_posix()
+        if _is_secret_excluded(relative, exclusions):
             continue
         try:
             text = file.read_text(encoding="utf-8")
@@ -189,24 +226,71 @@ def build_sarif(findings: list[dict[str, Any]]) -> dict[str, Any]:
                                       "region": {"startLine": f["line"]}}}]} for f in findings]}]}
 
 
+def validate_sarif(document: dict[str, Any]) -> None:
+    if document.get("version") != "2.1.0" or not isinstance(document.get("runs"), list):
+        raise ValueError("invalid SARIF 2.1.0 document")
+    for run in document["runs"]:
+        if not isinstance(run.get("tool", {}).get("driver", {}).get("name"), str):
+            raise ValueError("SARIF run is missing tool.driver.name")
+        if not isinstance(run.get("results", []), list):
+            raise ValueError("SARIF run results must be a list")
+
+
+def validate_sbom_document(document: dict[str, Any], fmt: str) -> None:
+    if fmt == "cyclonedx":
+        if document.get("bomFormat") != "CycloneDX" or document.get("specVersion") != "1.5":
+            raise ValueError("invalid CycloneDX 1.5 document")
+        if not isinstance(document.get("components"), list):
+            raise ValueError("CycloneDX components must be a list")
+    elif fmt == "spdx":
+        required = ("spdxVersion", "dataLicense", "SPDXID", "name", "documentNamespace", "creationInfo", "packages")
+        if document.get("spdxVersion") != "SPDX-2.3" or any(key not in document for key in required):
+            raise ValueError("invalid SPDX 2.3 document")
+        if not isinstance(document.get("packages"), list):
+            raise ValueError("SPDX packages must be a list")
+    else:
+        raise ValueError("unsupported SBOM format")
+
+
 def license_inventory(path: Path) -> dict[str, Any]:
     root = path.resolve()
     packages = _manifest_packages(root)
-    # Manifest package declarations rarely carry per-dependency license metadata.
-    known = sum(p.get("license") in SPDX_KNOWN for p in packages)
+    policy: dict[str, Any] = {}
+    config_file = root / ".devaid.toml"
+    if config_file.is_file():
+        try:
+            policy = tomllib.loads(config_file.read_text(encoding="utf-8")).get("licenses", {})
+        except (OSError, ValueError, tomllib.TOMLDecodeError):
+            policy = {}
+    denied = set(policy.get("deny", [])) if isinstance(policy.get("deny", []), list) else set()
+    allowed = set(policy.get("allow", [])) if isinstance(policy.get("allow", []), list) else set()
+    items = []
+    for package in packages:
+        license_id = package.get("license", "unknown")
+        if license_id not in SPDX_KNOWN:
+            status = "unknown"
+        elif license_id in denied:
+            status = "denied"
+        elif allowed and license_id not in allowed:
+            status = "review"
+        else:
+            status = "known"
+        items.append({
+            "name": package["name"],
+            "version": package["version"],
+            "ecosystem": package["ecosystem"],
+            "license": license_id,
+            "status": status,
+        })
+    counts = {
+        name: sum(item["status"] == name for item in items)
+        for name in ("known", "unknown", "denied", "review")
+    }
     return {
-        "packages": [
-            {
-                "name": p["name"],
-                "version": p["version"],
-                "ecosystem": p["ecosystem"],
-                "license": p.get("license", "unknown"),
-                "status": "known" if p.get("license") in SPDX_KNOWN else "unknown",
-            }
-            for p in packages
-        ],
-        "summary": {"total": len(packages), "known": known, "unknown": len(packages) - known},
-        "notice": "Only verified SPDX identifiers from supported lockfile metadata are shown; this is not legal advice.",
+        "packages": items,
+        "summary": {"total": len(items), **counts},
+        "policy": {"deny": sorted(denied), "allow": sorted(allowed)},
+        "notice": "Policy results are heuristic inventory guidance, not legal advice.",
     }
 
 
@@ -405,7 +489,9 @@ def secrets_command(path: Path = Path("."), output: Path | None = None) -> None:
 def sarif_command(path: Path = Path("."), output: Path = Path("devaid.sarif")) -> None:
     findings = scan_secrets(path)
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(build_sarif(findings), indent=2) + "\n", encoding="utf-8")
+    document = build_sarif(findings)
+    validate_sarif(document)
+    output.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
     console.print(f"[green]SARIF report written to {output} ({len(findings)} findings)[/green]")
 
 
