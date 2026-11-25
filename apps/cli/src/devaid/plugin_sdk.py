@@ -60,7 +60,7 @@ def parse_plugin_manifest(content: str) -> PluginManifest:
 def validate_analyzer(callback: Callable[..., object]) -> None:
     """Validate a plugin callback's shape without invoking it."""
     if not callable(callback):
-        raise TypeError("analyzer entry point must be callable")
+        raise TypeError("Plugin must expose a callable accepting one pathlib.Path.")
     try:
         signature = inspect.signature(callback)
         signature.bind(Path("."))
