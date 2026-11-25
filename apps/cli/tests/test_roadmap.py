@@ -11,10 +11,10 @@ from devaid.diagnostics.roadmap import (
     generate_sbom,
     git_review,
     license_inventory,
+    run_coverage,
     save_history,
     scan_secrets,
     validate_sarif,
-    run_coverage,
 )
 
 
@@ -134,9 +134,15 @@ def test_history_round_trip_and_compare(tmp_path: Path) -> None:
     after = history_dir / "after.json"
     save_history(tmp_path, before)
     (tmp_path / "module.py").write_text("pass\n")
+    (tmp_path / "README.md").write_text("# Project\n")
     save_history(tmp_path, after)
     result = compare_history(before, after)
-    assert result["changes"]["filesScanned"]["delta"] == 1
+    assert result["changes"]["filesScanned"]["delta"] == 2
+    assert result["scores"]["after"]["projectHealth"] > result["scores"]["before"]["projectHealth"]
+    assert any(
+        item[0] == "health.missing.readme"
+        for item in result["findings"]["resolved"]
+    )
     with pytest.raises(FileExistsError):
         save_history(tmp_path, after)
 
