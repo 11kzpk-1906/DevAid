@@ -39,6 +39,17 @@ from devaid.diagnostics.vulnerabilities import scan_vulnerabilities
 from devaid.diagnostics.workflows import workflow_doctor
 from devaid.plugins import discover_analyzer_plugins, run_analyzer_plugin
 from devaid.settings import create_default_config
+from devaid.diagnostics.roadmap import (
+    coverage_command,
+    explorer_command,
+    git_review_command,
+    history_command,
+    history_compare_command,
+    licenses_command,
+    sarif_command,
+    sbom_command,
+    secrets_command,
+)
 
 app = typer.Typer(
     name="DevAid",
@@ -94,6 +105,15 @@ app.command(name="package-doctor")(package_doctor)
 app.command(name="python-doctor")(python_doctor)
 app.command(name="javascript-doctor")(javascript_doctor)
 app.command(name="report")(report)
+app.command(name="sbom")(sbom_command)
+app.command(name="secret-scan")(secrets_command)
+app.command(name="sarif")(sarif_command)
+app.command(name="licenses")(licenses_command)
+app.command(name="git-review")(git_review_command)
+app.command(name="coverage")(coverage_command)
+app.command(name="history")(history_command)
+app.command(name="history-compare")(history_compare_command)
+app.command(name="explore")(explorer_command)
 
 
 @app.command()
