@@ -1,5 +1,4 @@
 import pytest
-
 from devaid.plugin_sdk import (
     PLUGIN_API_VERSION,
     AnalyzerFinding,

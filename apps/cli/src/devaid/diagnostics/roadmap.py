@@ -5,9 +5,9 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import sys
 import re
 import subprocess
+import sys
 import tomllib
 import xml.etree.ElementTree as ET
 from datetime import UTC, datetime
@@ -16,8 +16,8 @@ from typing import Any
 
 import typer
 from rich.console import Console
-from rich.table import Table
 from rich.prompt import Prompt
+from rich.table import Table
 
 console = Console()
 SKIP_DIRS = {".git", ".venv", "venv", "node_modules", "__pycache__", "dist", "build", ".tox"}

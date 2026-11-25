@@ -5,7 +5,7 @@ import inspect
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
+from collections.abc import Callable
 
 PLUGIN_API_VERSION = 1
 
