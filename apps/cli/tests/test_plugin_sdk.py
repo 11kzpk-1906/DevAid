@@ -5,6 +5,7 @@ from devaid.plugin_sdk import (
     AnalyzerResult,
     parse_plugin_manifest,
     validate_analyzer,
+    validate_entry_point_metadata,
 )
 
 
@@ -51,3 +52,38 @@ def test_result_contract_is_immutable() -> None:
         summary="one finding",
     )
     assert result.findings[0].rule_id == "demo.rule"
+
+def test_entry_point_manifest_is_checked_before_code_loading() -> None:
+    class Distribution:
+        def read_text(self, filename):
+            assert filename == "devaid-plugin.toml"
+            return (
+                '[devaid-plugin]\\nname="demo"\\napi-version=1\\n'
+                'entry-point="demo.plugin:analyze"'
+            )
+
+    class EntryPoint:
+        name = "demo"
+        value = "demo.plugin:analyze"
+        dist = Distribution()
+
+    manifest = validate_entry_point_metadata(EntryPoint())
+    assert manifest is not None
+    assert manifest.entry_point == "demo.plugin:analyze"
+
+
+def test_entry_point_manifest_mismatch_is_rejected() -> None:
+    class Distribution:
+        def read_text(self, filename):
+            return (
+                '[devaid-plugin]\\nname="other"\\napi-version=1\\n'
+                'entry-point="demo.plugin:analyze"'
+            )
+
+    class EntryPoint:
+        name = "demo"
+        value = "demo.plugin:analyze"
+        dist = Distribution()
+
+    with pytest.raises(ValueError, match="name does not match"):
+        validate_entry_point_metadata(EntryPoint())

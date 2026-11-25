@@ -57,6 +57,26 @@ def parse_plugin_manifest(content: str) -> PluginManifest:
     return PluginManifest(name.strip(), api_version, entry_point)
 
 
+def validate_entry_point_metadata(entry_point: object) -> PluginManifest | None:
+    """Validate an installed plugin manifest before importing its entry-point code.
+
+    Older entry-point-only plugins remain supported as a compatibility path.
+    """
+    distribution = getattr(entry_point, "dist", None)
+    reader = getattr(distribution, "read_text", None)
+    if not callable(reader):
+        return None
+    content = reader("devaid-plugin.toml")
+    if not content:
+        return None
+    manifest = parse_plugin_manifest(content)
+    if manifest.name != getattr(entry_point, "name", None):
+        raise ValueError("plugin manifest name does not match its entry-point name")
+    if manifest.entry_point != getattr(entry_point, "value", None):
+        raise ValueError("plugin manifest entry-point does not match installed metadata")
+    return manifest
+
+
 def validate_analyzer(callback: Callable[..., object]) -> None:
     """Validate a plugin callback's shape without invoking it."""
     if not callable(callback):
