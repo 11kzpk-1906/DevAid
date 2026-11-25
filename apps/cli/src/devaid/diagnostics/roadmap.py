@@ -185,7 +185,9 @@ def _secret_exclusions(root: Path) -> list[str]:
 def _is_secret_excluded(relative: str, patterns: list[str]) -> bool:
     normalized = relative.replace("\\", "/")
     return any(
-        fnmatch.fnmatch(normalized, pattern)
+        normalized == pattern.rstrip("/")
+        or normalized.startswith(pattern.rstrip("/") + "/")
+        or fnmatch.fnmatch(normalized, pattern)
         or fnmatch.fnmatch(normalized, f"**/{pattern}")
         for pattern in patterns
     )
