@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import sys
 import re
 import subprocess
 import tomllib
@@ -16,6 +17,7 @@ from typing import Any
 import typer
 from rich.console import Console
 from rich.table import Table
+from rich.prompt import Prompt
 
 console = Console()
 SKIP_DIRS = {".git", ".venv", "venv", "node_modules", "__pycache__", "dist", "build", ".tox"}
@@ -339,10 +341,49 @@ def history_compare_command(before: Path, after: Path) -> None:
         raise typer.Exit(1) from error
 
 
-def explorer_command(path: Path = Path("."), depth: int = typer.Option(2, "--depth", min=1, max=5)) -> None:
+def explorer_command(
+    path: Path = Path("."),
+    depth: int = typer.Option(2, "--depth", min=1, max=5),
+    no_interactive: bool = typer.Option(False, "--no-interactive", help="Print a static tree."),
+) -> None:
     try:
-        lines = explore_project(path, depth)
+        root = path.resolve()
+        lines = explore_project(root, depth)
     except ValueError as error:
         console.print(f"[red]{error}[/red]")
         raise typer.Exit(1) from error
-    console.print("\n".join(lines))
+    if no_interactive or not sys.stdin.isatty():
+        console.print("\\n".join(lines))
+        return
+
+    current = root
+    while True:
+        try:
+            children = sorted(
+                (item for item in current.iterdir()
+                 if item.name not in SKIP_DIRS and not item.name.startswith(".devaid")),
+                key=lambda item: (item.is_file(), item.name.lower()),
+            )
+        except OSError as error:
+            console.print(f"[red]Cannot read directory: {error}[/red]")
+            return
+        console.print(f"\\n[bold cyan]{current.relative_to(root) if current != root else root.name}/[/bold cyan]")
+        for index, child in enumerate(children[:200], 1):
+            suffix = "/" if child.is_dir() else ""
+            console.print(f"  {index:>3}. {child.name}{suffix}")
+        console.print("  [dim].. = parent | q = quit[/dim]")
+        choice = Prompt.ask("Open entry", default="q")
+        if choice.lower() in {"q", "quit"}:
+            return
+        if choice == "..":
+            if current != root:
+                current = current.parent
+            continue
+        if not choice.isdigit() or not 1 <= int(choice) <= min(len(children), 200):
+            console.print("[yellow]Choose a listed number, '..', or 'q'.[/yellow]")
+            continue
+        selected = children[int(choice) - 1]
+        if selected.is_dir():
+            current = selected
+        else:
+            console.print(f"[cyan]{selected.relative_to(root)}[/cyan] ({selected.stat().st_size} bytes)")
