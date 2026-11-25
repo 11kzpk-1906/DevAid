@@ -34,11 +34,11 @@ from devaid.diagnostics.security import check_security
 from devaid.diagnostics.security_code import check_security_code
 from devaid.diagnostics.security_score import security_score
 from devaid.diagnostics.suggestions import show_suggestions
-from devaid.diagnostics.test_doctor import test_doctor
+from devaid.diagnostics.tests_readiness import test_doctor
 from devaid.diagnostics.vulnerabilities import scan_vulnerabilities
 from devaid.diagnostics.workflows import workflow_doctor
 from devaid.plugins import discover_analyzer_plugins, run_analyzer_plugin
-from devaid.seCttings import create_default_config
+from devaid.settings import create_default_config
 
 app = typer.Typer(
     name="DevAid",
