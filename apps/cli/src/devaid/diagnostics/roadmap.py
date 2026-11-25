@@ -5,12 +5,14 @@ from __future__ import annotations
 import fnmatch
 import hashlib
 import json
+import math
 import os
 import re
 import subprocess
 import sys
 import tomllib
 import xml.etree.ElementTree as ET
+from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -166,7 +168,7 @@ def _secret_exclusions(root: Path) -> list[str]:
             patterns.extend(
                 line.strip()
                 for line in ignore_file.read_text(encoding="utf-8").splitlines()
-                if line.strip() and not line.lstrip().startswith("#") and not line.startswith("!")
+                if line.strip() and not line.lstrip().startswith("#")
             )
         except (OSError, UnicodeDecodeError):
             pass
@@ -184,13 +186,25 @@ def _secret_exclusions(root: Path) -> list[str]:
 
 def _is_secret_excluded(relative: str, patterns: list[str]) -> bool:
     normalized = relative.replace("\\", "/")
-    return any(
-        normalized == pattern.rstrip("/")
-        or normalized.startswith(pattern.rstrip("/") + "/")
-        or fnmatch.fnmatch(normalized, pattern)
-        or fnmatch.fnmatch(normalized, f"**/{pattern}")
-        for pattern in patterns
-    )
+    excluded = False
+    for raw_pattern in patterns:
+        negated = raw_pattern.startswith("!")
+        pattern = raw_pattern[1:] if negated else raw_pattern
+        matched = (
+            normalized == pattern.rstrip("/")
+            or normalized.startswith(pattern.rstrip("/") + "/")
+            or fnmatch.fnmatch(normalized, pattern)
+            or fnmatch.fnmatch(normalized, f"**/{pattern}")
+        )
+        if matched:
+            excluded = not negated
+    return excluded
+
+
+def _entropy(value: str) -> float:
+    counts = Counter(value)
+    length = len(value)
+    return -sum((count / length) * math.log2(count / length) for count in counts.values())
 
 
 def scan_secrets(path: Path) -> list[dict[str, Any]]:
@@ -208,12 +222,29 @@ def scan_secrets(path: Path) -> list[dict[str, Any]]:
         except (OSError, UnicodeDecodeError):
             continue
         for line_no, line in enumerate(text.splitlines(), 1):
+            matched = False
             for detector, pattern in SECRET_PATTERNS:
                 if pattern.search(line):
-                    results.append({"ruleId": detector, "path": file.relative_to(root).as_posix(),
-                                    "line": line_no, "confidence": "high" if detector != "generic-api-key" else "medium",
-                                    "message": "Potential credential detected; value redacted. Rotate it if genuine."})
+                    results.append({
+                        "ruleId": detector,
+                        "path": relative,
+                        "line": line_no,
+                        "confidence": "high" if detector != "generic-api-key" else "medium",
+                        "message": "Potential credential detected; value redacted. Rotate it if genuine.",
+                    })
+                    matched = True
                     break
+            if not matched:
+                for candidate in re.findall(r"\b[A-Za-z0-9_+/=-]{32,}\b", line):
+                    if len(set(candidate)) > 5 and _entropy(candidate) >= 4.0:
+                        results.append({
+                            "ruleId": "high-entropy-token",
+                            "path": relative,
+                            "line": line_no,
+                            "confidence": "low",
+                            "message": "High-entropy token candidate detected; value redacted. Verify manually.",
+                        })
+                        break
     return results
 
 
