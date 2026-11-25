@@ -39,8 +39,12 @@ def test_secret_scan_redacts_values_and_respects_exclusions(tmp_path: Path) -> N
     ignored = tmp_path / "ignored"
     ignored.mkdir()
     (ignored / "secret.py").write_text("TOKEN=ghp_" + "C" * 30)
+    token = "aB3xQ7mN9pL2vR5tY8wK4cD6fG1hJ0sU"
+    (tmp_path / "candidate.txt").write_text(token)
     findings = scan_secrets(tmp_path)
-    assert len(findings) == 1
+    assert len(findings) == 2
+    assert {item["confidence"] for item in findings} == {"high", "low"}
+    assert token not in json.dumps(findings)
     assert "ghp_" not in json.dumps(findings)
 
 

@@ -17,7 +17,7 @@ These commands are local-first. They do not upload project files.
 ## Limitations
 
 - SBOM extraction currently reads `pyproject.toml`, `requirements.txt`, and `package.json`. It reads npm package-lock entries (including resolved transitive packages) and Poetry lock entries. A limited set of explicitly declared SPDX licenses is retained; other values remain unknown.
-- Secret scanning uses bounded local pattern checks, honors `.gitignore` and `[security].exclude` patterns in `.devaid.toml`, and cannot guarantee detection. Findings contain no matched values.
+- Secret scanning uses bounded local pattern checks, honors `.gitignore` and `[security].exclude` patterns in `.devaid.toml`, and includes low-confidence entropy candidates. It cannot guarantee detection. Findings contain no matched values.
 - SARIF export currently covers secret-scanner rules; other diagnostics can be added as schemas stabilize.
 - License inventory reports only a limited allowlist of recognized SPDX identifiers from package-lock and Poetry lock metadata; other values remain unknown. Configure `[licenses] deny = ["GPL-3.0-only"]` or an optional `allow` list in `.devaid.toml` to flag packages for review. It is not legal advice.
 - Git review reports changed file names and basic sensitive/generated-file heuristics; it cannot prove a change safe or unsafe.
