@@ -1,11 +1,11 @@
 """Public, versioned contracts for third-party DevAid analyzer plugins."""
 from __future__ import annotations
 
+import inspect
+import tomllib
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-import inspect
-import tomllib
 
 PLUGIN_API_VERSION = 1
 
