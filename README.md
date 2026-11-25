@@ -143,6 +143,14 @@ Run `devaid --help` to see the commands available in your installed version. Com
 | `devaid python-doctor PATH` | Review Python project structure and requirements hygiene. |
 | `devaid javascript-doctor PATH` | Review Node.js metadata and project hygiene. |
 | `devaid report PATH` | Export supported findings as Markdown or JSON. |
+| `devaid sbom PATH` | Generate CycloneDX or SPDX dependency inventory. |
+| `devaid secret-scan PATH` | Scan for selected credential patterns with redacted findings. |
+| `devaid sarif PATH` | Export supported findings as SARIF 2.1.0. |
+| `devaid licenses PATH` | Inventory declared dependency licenses without guessing. |
+| `devaid git-review PATH` | Review staged and unstaged Git changes read-only. |
+| `devaid coverage PATH` | Read existing coverage reports without running tests. |
+| `devaid history PATH` / `history-compare BEFORE AFTER` | Save and compare local metadata-only snapshots. |
+| `devaid explore PATH` | Display a bounded project tree. |
 | `devaid plugins` | List installed analyzer plugins without importing plugin code. |
 | `devaid plugin-run NAME PATH` | Explicitly load and run one installed analyzer plugin. |
 | `devaid dashboard PATH` | Open an interactive terminal menu for common diagnostics. |
@@ -288,7 +296,7 @@ DevAid is being developed incrementally. Completed work includes:
 - [x] Guided onboarding, update checks, local backup and restore, and project snapshots (v0.2.0).
 - [x] Static source security checks, security posture scoring, OSV dependency vulnerability checks, and release checksum validation (v0.3.0 development line).
 
-The next development cycle will focus on improving diagnostic clarity, report quality, and day-to-day developer workflows. Roadmap items are not promises or claims of completed functionality.
+The next development cycle will focus on deeper ecosystem coverage, interactive navigation, and richer analyzer integrations. See [Roadmap command reference](docs/roadmap-command-reference.md) for current implementation scope and limitations.
 
 ## Contributing
 
