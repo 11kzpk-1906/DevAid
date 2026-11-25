@@ -159,33 +159,75 @@ def git_review(path: Path, staged_only: bool = False) -> dict[str, Any]:
     root = path.resolve()
     if not root.is_dir():
         raise ValueError("project path must be an existing directory")
+
     def run(args: list[str]) -> str:
-        result = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True,
-                                timeout=10, check=False)
+        result = subprocess.run(
+            ["git", "-C", str(root), *args],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
         if result.returncode:
             raise ValueError(result.stderr.strip() or "Git command failed")
         return result.stdout
+
     if not (root / ".git").exists():
         raise ValueError("path is not a Git working tree")
-    staged = run(["diff", "--cached", "--name-status"])
-    unstaged = "" if staged_only else run(["diff", "--name-status"])
-    status = run(["status", "--short", "--untracked-files=all"])
-    rows = []
-    for label, text in (("staged", staged), ("unstaged", unstaged)):
-        for line in text.splitlines():
-            parts = line.split("\t")
-            if len(parts) >= 2:
-                filename = parts[-1]
-                risks = []
-                if Path(filename).name.lower() in {".env", "id_rsa", "id_ed25519"} or filename.endswith((".pem", ".key")):
-                    risks.append("sensitive-file")
-                if any(part in filename.lower() for part in ("dist/", "build/", "coverage/")):
-                    risks.append("generated-file")
-                rows.append({"area": label, "status": parts[0], "path": filename, "risks": risks})
-    return {"changes": rows, "working_tree_status": status.splitlines(),
-            "summary": {"staged": sum(r["area"] == "staged" for r in rows),
-                        "unstaged": sum(r["area"] == "unstaged" for r in rows)},
-            "read_only": True}
+
+    staged = run(["diff", "--cached", "--name-status", "--find-renames"])
+    unstaged = "" if staged_only else run(["diff", "--name-status", "--find-renames"])
+    status = run(["status", "--porcelain=v1", "--untracked-files=all"])
+    rows: list[dict[str, Any]] = []
+    for label, diff_text in (("staged", staged), ("unstaged", unstaged)):
+        for line in diff_text.splitlines():
+            parts = line.split("\\t")
+            if len(parts) < 2:
+                continue
+            filename = parts[-1].split(" -> ")[-1]
+            risks = []
+            lowered = filename.lower()
+            if Path(lowered).name in {".env", "id_rsa", "id_ed25519"} or lowered.endswith((".pem", ".key")):
+                risks.append("sensitive-file")
+            if any(part in lowered for part in ("dist/", "build/", "coverage/")):
+                risks.append("generated-file")
+            rows.append({"area": label, "status": parts[0], "path": filename, "risks": risks})
+
+    for line in status.splitlines():
+        code = line[:2]
+        raw_path = line[3:] if len(line) > 3 else ""
+        filename = raw_path.split(" -> ")[-1]
+        if code == "??":
+            risks = ["untracked"]
+            lowered = filename.lower()
+            if Path(lowered).name in {".env", "id_rsa", "id_ed25519"} or lowered.endswith((".pem", ".key")):
+                risks.append("sensitive-file")
+            rows.append({"area": "untracked", "status": code, "path": filename, "risks": risks})
+
+    added_secret_lines = 0
+    diff_args = ["diff", "--cached", "--unified=0"] if staged_only else [
+        "diff", "--cached", "--unified=0"
+    ]
+    if not staged_only:
+        diff_args.extend(["--no-ext-diff"])
+    diff_text = run(diff_args)
+    if not staged_only:
+        diff_text += run(["diff", "--unified=0", "--no-ext-diff"])
+    for changed_line in diff_text.splitlines():
+        if changed_line.startswith("+") and not changed_line.startswith("+++"):
+            if any(pattern.search(changed_line) for _, pattern in SECRET_PATTERNS):
+                added_secret_lines += 1
+    return {
+        "changes": rows,
+        "working_tree_status": status.splitlines(),
+        "potential_secret_lines_added": added_secret_lines,
+        "summary": {
+            "staged": sum(row["area"] == "staged" for row in rows),
+            "unstaged": sum(row["area"] == "unstaged" for row in rows),
+            "untracked": sum(row["area"] == "untracked" for row in rows),
+        },
+        "read_only": True,
+    }
 
 
 def coverage_report(path: Path) -> dict[str, Any]:
@@ -196,7 +238,9 @@ def coverage_report(path: Path) -> dict[str, Any]:
             try:
                 data = json.loads(candidate.read_text(encoding="utf-8"))
                 totals = data.get("totals", {})
+                age_days = (datetime.now(UTC).timestamp() - candidate.stat().st_mtime) / 86400
                 return {"source": str(candidate.relative_to(root)), "available": True,
+                        "stale": age_days > 180, "age_days": round(age_days),
                         "covered_lines": totals.get("covered_lines"), "total_lines": totals.get("num_statements"),
                         "percent": totals.get("percent_covered"), "files": len(data.get("files", {}))}
             except (OSError, json.JSONDecodeError, AttributeError):
@@ -205,7 +249,9 @@ def coverage_report(path: Path) -> dict[str, Any]:
     if xml_path.is_file():
         try:
             xml = ET.parse(xml_path).getroot()
-            return {"source": "coverage.xml", "available": True,
+            age_days = (datetime.now(UTC).timestamp() - xml_path.stat().st_mtime) / 86400
+            return {"source": "coverage.xml", "available": True, "stale": age_days > 180,
+                    "age_days": round(age_days),
                     "percent": float(xml.attrib.get("line-rate", "0")) * 100,
                     "files": len(xml.findall(".//class"))}
         except (OSError, ET.ParseError, ValueError):
@@ -220,10 +266,23 @@ def save_history(path: Path, output: Path, overwrite: bool = False) -> dict[str,
     if output.exists() and not overwrite:
         raise FileExistsError(f"refusing to overwrite {output}; pass --overwrite")
     files = list(_files(root))
-    summary = {"schemaVersion": 1, "timestamp": datetime.now(UTC).isoformat(),
-               "devaidVersion": "0.3.0", "profile": "basic-local",
-               "metrics": {"filesScanned": len(files), "pythonFiles": sum(p.suffix == ".py" for p in files),
-                           "testFiles": sum("test" in p.name.lower() for p in files)}}
+    secret_findings = scan_secrets(root)
+    summary = {
+        "schemaVersion": 1,
+        "timestamp": datetime.now(UTC).isoformat(),
+        "devaidVersion": "0.3.0",
+        "profile": "basic-local",
+        "metrics": {
+            "filesScanned": len(files),
+            "pythonFiles": sum(p.suffix == ".py" for p in files),
+            "testFiles": sum("test" in p.name.lower() for p in files),
+            "secretFindings": len(secret_findings),
+        },
+        "findings": [
+            {key: finding[key] for key in ("ruleId", "path", "line", "confidence")}
+            for finding in secret_findings
+        ],
+    }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     return summary
