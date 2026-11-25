@@ -171,11 +171,21 @@ def license_inventory(path: Path) -> dict[str, Any]:
     root = path.resolve()
     packages = _manifest_packages(root)
     # Manifest package declarations rarely carry per-dependency license metadata.
-    return {"packages": [{"name": p["name"], "version": p["version"], "ecosystem": p["ecosystem"],
-                           "license": p.get("license", "unknown"),
-                           "status": "unknown"} for p in packages],
-            "summary": {"total": len(packages), "known": 0, "unknown": len(packages)},
-            "notice": "No license is inferred from package names. Add verified metadata before policy decisions."}
+    known = sum(p.get("license") in SPDX_KNOWN for p in packages)
+    return {
+        "packages": [
+            {
+                "name": p["name"],
+                "version": p["version"],
+                "ecosystem": p["ecosystem"],
+                "license": p.get("license", "unknown"),
+                "status": "known" if p.get("license") in SPDX_KNOWN else "unknown",
+            }
+            for p in packages
+        ],
+        "summary": {"total": len(packages), "known": known, "unknown": len(packages) - known},
+        "notice": "Only verified SPDX identifiers from supported lockfile metadata are shown; this is not legal advice.",
+    }
 
 
 def git_review(path: Path, staged_only: bool = False) -> dict[str, Any]:
