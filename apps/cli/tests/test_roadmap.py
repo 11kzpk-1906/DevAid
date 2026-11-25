@@ -17,6 +17,9 @@ def test_sbom_formats_and_overwrite_guard(tmp_path: Path) -> None:
 def test_secret_scan_redacts_values_and_skips_examples(tmp_path: Path) -> None:
     (tmp_path / ".env").write_text("TOKEN=ghp_" + "A" * 30)
     (tmp_path / ".env.example").write_text("TOKEN=ghp_" + "B" * 30)
+    (tmp_path / ".gitignore").write_text("ignored/")
+    (tmp_path / "ignored").mkdir()
+    (tmp_path / "ignored" / "secret.py").write_text("TOKEN=ghp_" + "C" * 30)
     findings = scan_secrets(tmp_path)
     assert len(findings) == 1
     assert "ghp_" not in json.dumps(findings)
@@ -24,6 +27,8 @@ def test_secret_scan_redacts_values_and_skips_examples(tmp_path: Path) -> None:
 def test_sarif_has_locations_and_rules() -> None:
     sarif = build_sarif([{"ruleId":"demo-secret","path":"src/a.py","line":4,"message":"redacted"}])
     assert sarif["version"] == "2.1.0"
+    from devaid.diagnostics.roadmap import validate_sarif
+    validate_sarif(sarif)
     assert sarif["runs"][0]["results"][0]["locations"][0]["physicalLocation"]["region"]["startLine"] == 4
 
 def test_license_inventory_does_not_guess(tmp_path: Path) -> None:
@@ -35,6 +40,9 @@ def test_license_inventory_does_not_guess(tmp_path: Path) -> None:
     enriched = license_inventory(tmp_path)
     assert enriched["summary"]["known"] == 1
     assert enriched["packages"][0]["license"] == "MIT"
+    (tmp_path / ".devaid.toml").write_text('[licenses]\ndeny = ["MIT"]\n')
+    denied = license_inventory(tmp_path)
+    assert denied["summary"]["denied"] == 1
 
 def test_git_review_is_read_only(tmp_path: Path) -> None:
     subprocess.run(["git","init",str(tmp_path)],check=True,capture_output=True)
