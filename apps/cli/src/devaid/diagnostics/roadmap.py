@@ -371,6 +371,29 @@ def git_review(path: Path, staged_only: bool = False) -> dict[str, Any]:
     }
 
 
+def run_coverage(path: Path, timeout_seconds: int = 300) -> None:
+    """Explicitly run the project's pytest suite under coverage.py."""
+    root = path.resolve()
+    if not root.is_dir():
+        raise ValueError("project path must be an existing directory")
+    try:
+        result = subprocess.run(
+            ["coverage", "run", "-m", "pytest"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=timeout_seconds,
+            check=False,
+        )
+    except FileNotFoundError as error:
+        raise ValueError("coverage.py is not installed; install coverage and retry") from error
+    except subprocess.TimeoutExpired as error:
+        raise ValueError(f"coverage run exceeded {timeout_seconds} seconds") from error
+    if result.returncode:
+        detail = result.stderr.strip() or result.stdout.strip() or "test command failed"
+        raise ValueError(detail[-2000:])
+
+
 def coverage_report(path: Path) -> dict[str, Any]:
     root = path.resolve()
     candidates = [root / "coverage.json", root / "coverage" / "coverage.json"]
@@ -408,21 +431,54 @@ def save_history(path: Path, output: Path, overwrite: bool = False) -> dict[str,
         raise FileExistsError(f"refusing to overwrite {output}; pass --overwrite")
     files = list(_files(root))
     secret_findings = scan_secrets(root)
+    checks = {
+        "readme": (root / "README.md").is_file(),
+        "git": (root / ".git").exists(),
+        "dependencyManifest": any((root / name).is_file() for name in (
+            "pyproject.toml", "requirements.txt", "package.json",
+            "Cargo.toml", "go.mod", "pom.xml", "build.gradle",
+        )),
+        "tests": any(
+            "test" in item.name.lower()
+            for item in files
+        ),
+        "ci": (root / ".github" / "workflows").is_dir()
+        and any((root / ".github" / "workflows").glob("*.yml"))
+        or (root / ".github" / "workflows").is_dir()
+        and any((root / ".github" / "workflows").glob("*.yaml")),
+        "contributing": (root / "CONTRIBUTING.md").is_file()
+        or (root / "docs" / "CONTRIBUTING.md").is_file(),
+    }
+    passed = sum(checks.values())
+    health_score = round(passed / len(checks) * 100)
+    findings = [
+        {
+            "ruleId": f"health.missing.{name}",
+            "path": None,
+            "line": None,
+            "confidence": "high",
+        }
+        for name, healthy in checks.items()
+        if not healthy
+    ]
+    findings.extend(
+        {key: finding[key] for key in ("ruleId", "path", "line", "confidence")}
+        for finding in secret_findings
+    )
     summary = {
         "schemaVersion": 1,
         "timestamp": datetime.now(UTC).isoformat(),
         "devaidVersion": "0.3.0",
         "profile": "basic-local",
+        "scores": {"projectHealth": health_score},
+        "checks": checks,
         "metrics": {
             "filesScanned": len(files),
-            "pythonFiles": sum(p.suffix == ".py" for p in files),
-            "testFiles": sum("test" in p.name.lower() for p in files),
+            "pythonFiles": sum(item.suffix == ".py" for item in files),
+            "testFiles": sum("test" in item.name.lower() for item in files),
             "secretFindings": len(secret_findings),
         },
-        "findings": [
-            {key: finding[key] for key in ("ruleId", "path", "line", "confidence")}
-            for finding in secret_findings
-        ],
+        "findings": findings,
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
@@ -430,15 +486,47 @@ def save_history(path: Path, output: Path, overwrite: bool = False) -> dict[str,
 
 
 def compare_history(before: Path, after: Path) -> dict[str, Any]:
-    a, b = json.loads(before.read_text(encoding="utf-8")), json.loads(after.read_text(encoding="utf-8"))
-    if a.get("schemaVersion") != 1 or b.get("schemaVersion") != 1:
+    first = json.loads(before.read_text(encoding="utf-8"))
+    second = json.loads(after.read_text(encoding="utf-8"))
+    if first.get("schemaVersion") != 1 or second.get("schemaVersion") != 1:
         raise ValueError("unsupported history schema version")
-    am, bm = a.get("metrics", {}), b.get("metrics", {})
-    keys = sorted(set(am) | set(bm))
-    return {"before": a.get("timestamp"), "after": b.get("timestamp"),
-            "changes": {k: {"before": am.get(k), "after": bm.get(k),
-                            "delta": (bm.get(k, 0) - am.get(k, 0)) if isinstance(am.get(k), (int, float)) and isinstance(bm.get(k), (int, float)) else None}
-                        for k in keys}}
+    first_metrics = first.get("metrics", {})
+    second_metrics = second.get("metrics", {})
+    keys = sorted(set(first_metrics) | set(second_metrics))
+    first_findings = {
+        (item.get("ruleId"), item.get("path"), item.get("line"))
+        for item in first.get("findings", [])
+    }
+    second_findings = {
+        (item.get("ruleId"), item.get("path"), item.get("line"))
+        for item in second.get("findings", [])
+    }
+    return {
+        "before": first.get("timestamp"),
+        "after": second.get("timestamp"),
+        "scores": {
+            "before": first.get("scores", {}),
+            "after": second.get("scores", {}),
+        },
+        "changes": {
+            key: {
+                "before": first_metrics.get(key),
+                "after": second_metrics.get(key),
+                "delta": (
+                    second_metrics.get(key, 0) - first_metrics.get(key, 0)
+                    if isinstance(first_metrics.get(key), (int, float))
+                    and isinstance(second_metrics.get(key), (int, float))
+                    else None
+                ),
+            }
+            for key in keys
+        },
+        "findings": {
+            "new": sorted(second_findings - first_findings, key=str),
+            "resolved": sorted(first_findings - second_findings, key=str),
+            "unchanged": sorted(first_findings & second_findings, key=str),
+        },
+    }
 
 
 def explore_project(path: Path, max_depth: int = 2) -> list[str]:
@@ -519,7 +607,20 @@ def git_review_command(path: Path = Path("."), staged_only: bool = typer.Option(
     console.print("Read-only: Git state and working-tree files were not modified.")
 
 
-def coverage_command(path: Path = Path(".")) -> None:
+def coverage_command(
+    path: Path = Path("."),
+    run_tests: bool = typer.Option(
+        False,
+        "--run-tests",
+        help="Explicitly execute pytest under coverage.py (may run project code).",
+    ),
+) -> None:
+    if run_tests:
+        try:
+            run_coverage(path)
+        except (OSError, ValueError, subprocess.TimeoutExpired) as error:
+            console.print(f"[red]Coverage run failed: {error}[/red]")
+            raise typer.Exit(1) from error
     result = coverage_report(path)
     console.print_json(json.dumps(result))
 
