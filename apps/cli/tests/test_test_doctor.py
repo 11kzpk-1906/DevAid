@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from devaid.diagnostics.test_doctor import inspect_tests
+from devaid.diagnostics.tests_readiness import inspect_tests
 from devaid.main import app
 from typer.testing import CliRunner
 
