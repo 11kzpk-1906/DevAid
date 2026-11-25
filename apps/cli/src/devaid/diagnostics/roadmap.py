@@ -80,6 +80,28 @@ def _manifest_packages(root: Path) -> list[dict[str, Any]]:
                     packages[(name.lower(), version, "npm")] = {"name": name, "version": version, "ecosystem": "npm", "license": "unknown"}
         except (OSError, json.JSONDecodeError, AttributeError):
             pass
+    poetry_lock = root / "poetry.lock"
+    if poetry_lock.is_file():
+        try:
+            poetry_data = tomllib.loads(poetry_lock.read_text(encoding="utf-8"))
+            for package in poetry_data.get("package", []):
+                package_name = package.get("name")
+                version = package.get("version", "unknown")
+                license_value = package.get("license", "unknown")
+                license_id = (
+                    license_value
+                    if isinstance(license_value, str) and license_value in SPDX_KNOWN
+                    else "unknown"
+                )
+                if package_name:
+                    packages[(package_name.lower(), version, "pypi")] = {
+                        "name": package_name,
+                        "version": version,
+                        "ecosystem": "pypi",
+                        "license": license_id,
+                    }
+        except (OSError, ValueError, tomllib.TOMLDecodeError):
+            pass
     lockfile = root / "package-lock.json"
     if lockfile.is_file():
         try:

@@ -143,14 +143,14 @@ Run `devaid --help` to see the commands available in your installed version. Com
 | `devaid python-doctor PATH` | Review Python project structure and requirements hygiene. |
 | `devaid javascript-doctor PATH` | Review Node.js metadata and project hygiene. |
 | `devaid report PATH` | Export supported findings as Markdown or JSON. |
-| `devaid sbom PATH` | Generate CycloneDX or SPDX dependency inventory. |
-| `devaid secret-scan PATH` | Scan for selected credential patterns with redacted findings. |
-| `devaid sarif PATH` | Export supported findings as SARIF 2.1.0. |
-| `devaid licenses PATH` | Inventory declared dependency licenses without guessing. |
-| `devaid git-review PATH` | Review staged and unstaged Git changes read-only. |
-| `devaid coverage PATH` | Read existing coverage reports without running tests. |
-| `devaid history PATH` / `history-compare BEFORE AFTER` | Save and compare local metadata-only snapshots. |
-| `devaid explore PATH` | Display a bounded project tree. |
+| `devaid sbom --path PATH` | Generate CycloneDX or SPDX dependency inventory. |
+| `devaid secret-scan --path PATH` | Scan for selected credential patterns with redacted findings. |
+| `devaid sarif --path PATH` | Export supported findings as SARIF 2.1.0. |
+| `devaid licenses --path PATH` | Inventory declared dependency licenses without guessing. |
+| `devaid git-review --path PATH` | Review staged and unstaged Git changes read-only. |
+| `devaid coverage --path PATH` | Read existing coverage reports without running tests. |
+| `devaid history --path PATH` / `history-compare BEFORE AFTER` | Save and compare local metadata-only snapshots. |
+| `devaid explore --path PATH` | Display a bounded project tree. |
 | `devaid plugins` | List installed analyzer plugins without importing plugin code. |
 | `devaid plugin-run NAME PATH` | Explicitly load and run one installed analyzer plugin. |
 | `devaid dashboard PATH` | Open an interactive terminal menu for common diagnostics. |
