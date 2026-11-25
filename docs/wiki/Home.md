@@ -2,14 +2,14 @@
 
 Welcome to **DevAid** — a free, open-source, local-first toolkit for developer workflows.
 
-- [Getting Started](Getting-Started)
-- [Installation](Installation)
-- [Commands Reference](Commands-Reference)
-- [Troubleshooting](Troubleshooting)
-- [Security and Privacy](Security-and-Privacy)
-- [Analyzer Plugins](Analyzer-Plugins)
-- [Contributing](Contributing)
-- [Roadmap](Roadmap)
+- [Getting Started](Getting-Started.md)
+- [Installation](Installation.md)
+- [Commands Reference](Commands-Reference.md)
+- [Troubleshooting](Troubleshooting.md)
+- [Security and Privacy](Security-and-Privacy.md)
+- [Analyzer Plugins](Analyzer-Plugins.md)
+- [Contributing](Contributing.md)
+- [Roadmap](Roadmap.md)
 
 ## Guides
 Start with Getting Started, then choose the installation method for your platform. Use the command reference for supported CLI syntax and troubleshooting for common setup problems.
