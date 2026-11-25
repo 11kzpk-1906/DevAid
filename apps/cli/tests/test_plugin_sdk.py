@@ -58,7 +58,7 @@ def test_entry_point_manifest_is_checked_before_code_loading() -> None:
         def read_text(self, filename):
             assert filename == "devaid-plugin.toml"
             return (
-                '[devaid-plugin]\\nname="demo"\\napi-version=1\\n'
+                '[devaid-plugin]\nname="demo"\napi-version=1\n'
                 'entry-point="demo.plugin:analyze"'
             )
 
@@ -76,7 +76,7 @@ def test_entry_point_manifest_mismatch_is_rejected() -> None:
     class Distribution:
         def read_text(self, filename):
             return (
-                '[devaid-plugin]\\nname="other"\\napi-version=1\\n'
+                '[devaid-plugin]\nname="other"\napi-version=1\n'
                 'entry-point="demo.plugin:analyze"'
             )
 
