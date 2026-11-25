@@ -214,7 +214,7 @@ def git_review(path: Path, staged_only: bool = False) -> dict[str, Any]:
     rows: list[dict[str, Any]] = []
     for label, diff_text in (("staged", staged), ("unstaged", unstaged)):
         for line in diff_text.splitlines():
-            parts = line.split("\\t")
+            parts = line.split("\t")
             if len(parts) < 2:
                 continue
             filename = parts[-1].split(" -> ")[-1]
