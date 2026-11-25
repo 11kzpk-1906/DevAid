@@ -1,5 +1,3 @@
-"""Local project health report."""
-
 from pathlib import Path
 
 import typer

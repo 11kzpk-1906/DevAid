@@ -33,9 +33,9 @@ DevAid is designed to be useful without AI. Local-first behavior is preferred, a
 
 ## Download DevAid
 
-The latest stable release is **v0.2.0**.
+The current development version is **v0.3.0**. The release is being polished; until its publication, **v0.2.0 remains the latest stable download**.
 
-**[Download DevAid v0.2.0](https://github.com/11kzpk-1906/DevAid/releases/tag/v0.2.0)**
+**[View all DevAid releases](https://github.com/11kzpk-1906/DevAid/releases)**
 
 | Platform | Release asset | Architecture |
 | --- | --- | --- |
@@ -44,6 +44,8 @@ The latest stable release is **v0.2.0**.
 | macOS | `devaid-macos-arm64.zip` | Apple Silicon (ARM64) |
 
 ### Run the standalone CLI
+
+For a complete walkthrough covering downloads, checksums, extraction, PATH setup, and troubleshooting, see the [standalone installation guide](docs/standalone-installation.md).
 
 1. Download the ZIP for your operating system from the release page.
 2. Extract the ZIP to a folder.
@@ -101,7 +103,7 @@ A matching SHA-256 value confirms the downloaded file matches the published chec
 
 ## Available CLI commands
 
-Run `devaid --help` to see the commands available in your installed version. Commands that accept a project path generally use the current directory when you pass `.`.
+Run `devaid --help` to see the commands available in your installed version. Commands that accept a project path generally use the current directory when you pass `.`. Network-dependent checks are opt-in and documented below.
 
 | Command | Purpose |
 | --- | --- |
@@ -110,6 +112,7 @@ Run `devaid --help` to see the commands available in your installed version. Com
 | `devaid update-check` | Check GitHub for the latest stable release without installing it. |
 
 `devaid update-check` is read-only. If GitHub is unreachable, times out, rate-limits the request, or returns an unexpected response, the command prints an actionable message and exits with status `0`; update checks are informational and never block other CLI work or modify local files.
+
 | `devaid backup --path PATH --output FILE` | Create a local ZIP project backup, excluding common secrets and generated folders. |
 | `devaid backup-verify ARCHIVE` | Verify the backup manifest and file checksums. |
 | `devaid restore ARCHIVE --destination PATH` | Restore a verified backup into a new directory without overwriting existing files. |
@@ -132,13 +135,22 @@ Run `devaid --help` to see the commands available in your installed version. Com
 | `devaid api URL` | Send a read-only HTTP GET and inspect the response. |
 | `devaid docs PATH` | Check documentation file and section completeness. |
 | `devaid security PATH` | Scan local project files for common secret and security hygiene issues. |
-| `devaid security-code PATH` | Scan Python and JavaScript/TypeScript source for selected risky coding patterns. |\n| `devaid security-score PATH` | Calculate a weighted, local security posture score with actionable findings. |
+| `devaid security-code PATH` | Scan Python and JavaScript/TypeScript source for selected risky coding patterns. |
+| `devaid security-score PATH` | Calculate a weighted, local security posture score with actionable findings. |
 | `devaid workflow-doctor PATH` | Review GitHub Actions permissions, action pinning, and checkout credential settings. |
 | `devaid docker-doctor PATH` | Review Dockerfiles and Compose files for common security and reliability issues. |
 | `devaid package-doctor PATH` | Check Python and Node.js manifests and lockfile consistency. |
 | `devaid python-doctor PATH` | Review Python project structure and requirements hygiene. |
 | `devaid javascript-doctor PATH` | Review Node.js metadata and project hygiene. |
 | `devaid report PATH` | Export supported findings as Markdown or JSON. |
+| `devaid sbom --path PATH` | Generate CycloneDX or SPDX dependency inventory. |
+| `devaid secret-scan --path PATH` | Scan for selected credential patterns with redacted findings. |
+| `devaid sarif --path PATH` | Export supported findings as SARIF 2.1.0. |
+| `devaid licenses --path PATH` | Inventory declared dependency licenses without guessing. |
+| `devaid git-review --path PATH` | Review staged and unstaged Git changes read-only. |
+| `devaid coverage --path PATH` | Read existing coverage reports; `--run-tests` opts into executing pytest under coverage.py. |
+| `devaid history --path PATH` / `history-compare BEFORE AFTER` | Save and compare local health scores and metadata-only findings. |
+| `devaid explore --path PATH` | Display a bounded project tree. |
 | `devaid plugins` | List installed analyzer plugins without importing plugin code. |
 | `devaid plugin-run NAME PATH` | Explicitly load and run one installed analyzer plugin. |
 | `devaid dashboard PATH` | Open an interactive terminal menu for common diagnostics. |
@@ -281,8 +293,10 @@ DevAid is being developed incrementally. Completed work includes:
 - [x] Interactive CLI dashboard, custom diagnostic profiles, and analyzer plugin extension points.
 - [x] Static browser utilities for common developer workflows.
 - [x] Cross-platform binary build workflow and v0.1.0 release.
+- [x] Guided onboarding, update checks, local backup and restore, and project snapshots (v0.2.0).
+- [x] Static source security checks, security posture scoring, OSV dependency vulnerability checks, and release checksum validation (v0.3.0 development line).
 
-Potential next areas include smoother onboarding, update notifications, broader platform testing, and richer diagnostic explanations. Roadmap items are not promises or claims of completed functionality.
+The next development cycle will focus on deeper ecosystem coverage, interactive navigation, and richer analyzer integrations. See [Roadmap command reference](docs/roadmap-command-reference.md) for current implementation scope and limitations.
 
 ## Contributing
 

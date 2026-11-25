@@ -1,4 +1,3 @@
-"""Static Python project convention checks."""
 from pathlib import Path
 
 from rich.console import Console

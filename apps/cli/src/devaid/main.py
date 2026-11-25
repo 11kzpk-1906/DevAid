@@ -1,11 +1,12 @@
-"""DevAid CLI entry point."""
-
+# ruff: noqa: I001
+import json
 import zipfile
 from pathlib import Path
 
 import typer
 from rich.console import Console
 from rich.prompt import Prompt
+from rich.table import Table
 
 from devaid import __version__
 from devaid.analyzers.project import analyze_project
@@ -34,13 +35,25 @@ from devaid.diagnostics.security import check_security
 from devaid.diagnostics.security_code import check_security_code
 from devaid.diagnostics.security_score import security_score
 from devaid.diagnostics.suggestions import show_suggestions
-from devaid.diagnostics.test_doctor import test_doctor
+from devaid.diagnostics.tests_readiness import test_doctor
+from devaid.diagnostics.vulnerabilities import scan_vulnerabilities
 from devaid.diagnostics.workflows import workflow_doctor
 from devaid.plugins import discover_analyzer_plugins, run_analyzer_plugin
 from devaid.settings import create_default_config
+from devaid.diagnostics.roadmap import (
+    coverage_command,
+    explorer_command,
+    git_review_command,
+    history_command,
+    history_compare_command,
+    licenses_command,
+    sarif_command,
+    sbom_command,
+    secrets_command,
+)
 
 app = typer.Typer(
-    name="devaid",
+    name="DevAid",
     help="An open-source toolkit for developers.",
     no_args_is_help=True,
 )
@@ -50,6 +63,7 @@ BACKUP_OUTPUT_OPTION = typer.Option(None, "--output", "-o")
 BACKUP_VERIFY_ARCHIVE_ARGUMENT = typer.Argument(...)
 RESTORE_ARCHIVE_ARGUMENT = typer.Argument(...)
 RESTORE_DESTINATION_OPTION = typer.Option(..., "--destination", "-d")
+VULN_PATH_ARGUMENT = typer.Argument(Path("."))
 SNAPSHOT_OUTPUT_OPTION = typer.Option(None, "--output", "-o")
 SNAPSHOT_BEFORE_ARGUMENT = typer.Argument(...)
 SNAPSHOT_AFTER_ARGUMENT = typer.Argument(...)
@@ -92,6 +106,15 @@ app.command(name="package-doctor")(package_doctor)
 app.command(name="python-doctor")(python_doctor)
 app.command(name="javascript-doctor")(javascript_doctor)
 app.command(name="report")(report)
+app.command(name="sbom")(sbom_command)
+app.command(name="secret-scan")(secrets_command)
+app.command(name="sarif")(sarif_command)
+app.command(name="licenses")(licenses_command)
+app.command(name="git-review")(git_review_command)
+app.command(name="coverage")(coverage_command)
+app.command(name="history")(history_command)
+app.command(name="history-compare")(history_compare_command)
+app.command(name="explore")(explorer_command)
 
 
 @app.command()
@@ -263,6 +286,43 @@ def plugin_run(name: str, path: Path = Path(".")) -> None:
     except Exception as error:
         console.print(f"[bold red]Plugin failed:[/bold red] {error}")
         raise typer.Exit(code=1) from error
+
+@app.command(name="vuln")
+def vuln_command(
+    path: Path = VULN_PATH_ARGUMENT,
+    offline: bool = typer.Option(False, "--offline", help="Do not contact OSV.dev."),
+    output_format: str = typer.Option("table", "--format", help="Output format: table or json."),
+) -> None:
+    """Check pinned dependencies against OSV.dev."""
+    if not path.exists() or not path.is_dir():
+        console.print("[bold red]Error:[/bold red] Invalid project directory.")
+        raise typer.Exit(code=1)
+    if output_format not in {"table", "json"}:
+        console.print("[bold red]Error:[/bold red] --format must be table or json.")
+        raise typer.Exit(code=2)
+    result = scan_vulnerabilities(path, offline=offline)
+    if output_format == "json":
+        console.print_json(json.dumps(result, sort_keys=True))
+        return
+    findings = result["findings"]
+    table = Table(title=f"DevAid Vulnerability Scan — {path.resolve().name}")
+    for column in ("Package", "Version", "Ecosystem", "ID", "Severity", "Fixed version"):
+        table.add_column(column)
+    for finding in findings:
+        table.add_row(
+            str(finding["package"]),
+            str(finding["version"]),
+            str(finding["ecosystem"]),
+            str(finding["id"]),
+            str(finding["severity"]),
+            str(finding["fixed_versions"]),
+        )
+    console.print(table)
+    console.print(f"Dependencies checked: {result['checked']}")
+    console.print(f"Vulnerabilities found: {len(findings)}")
+    console.print(str(result["notice"]))
+    for error in result["errors"]:
+        console.print(f"Could not check: {error}")
 
 if __name__ == "__main__":
     app()

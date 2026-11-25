@@ -1,7 +1,7 @@
-"""Optional third-party analyzer plugin discovery and execution."""
-
 from importlib.metadata import EntryPoint, entry_points
 from pathlib import Path
+
+from devaid.plugin_sdk import validate_analyzer, validate_entry_point_metadata
 
 PLUGIN_GROUP = "devaid.analyzers"
 
@@ -24,9 +24,7 @@ def run_analyzer_plugin(name: str, path: Path) -> None:
             f"{available or 'none'}"
         )
 
+    validate_entry_point_metadata(plugin)
     callback = plugin.load()
-    if not callable(callback):
-        raise TypeError(
-            f"Plugin {name!r} must expose a callable accepting one pathlib.Path."
-        )
+    validate_analyzer(callback)
     callback(path)

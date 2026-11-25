@@ -1,5 +1,3 @@
-"""Read-only Git repository diagnostics."""
-
 import subprocess
 from pathlib import Path
 

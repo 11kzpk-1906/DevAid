@@ -1,5 +1,3 @@
-"""Offline accessibility hygiene checks for HTML projects."""
-
 import os
 from html.parser import HTMLParser
 from pathlib import Path

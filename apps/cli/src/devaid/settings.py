@@ -1,5 +1,3 @@
-"""Project-level configuration for DevAid diagnostics."""
-
 import tomllib
 from pathlib import Path
 

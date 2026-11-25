@@ -1,5 +1,3 @@
-"""Read-only HTTP endpoint diagnostics."""
-
 import json
 import time
 from urllib.error import HTTPError, URLError

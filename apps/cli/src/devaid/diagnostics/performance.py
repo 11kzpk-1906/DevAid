@@ -1,5 +1,3 @@
-"""Read-only project performance hygiene diagnostics."""
-
 import json
 import os
 from pathlib import Path

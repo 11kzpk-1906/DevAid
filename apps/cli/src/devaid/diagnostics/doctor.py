@@ -1,5 +1,4 @@
-"""Run the complete set of local project diagnostics."""
-
+from collections.abc import Callable
 from pathlib import Path
 
 import typer
@@ -23,7 +22,7 @@ from devaid.diagnostics.release import release_doctor
 from devaid.diagnostics.security import check_security
 from devaid.diagnostics.security_code import check_security_code
 from devaid.diagnostics.suggestions import show_suggestions
-from devaid.diagnostics.test_doctor import test_doctor
+from devaid.diagnostics.tests_readiness import test_doctor
 from devaid.diagnostics.workflows import workflow_doctor
 from devaid.settings import load_skipped_checks
 
@@ -43,7 +42,7 @@ def run_doctor(path: Path) -> None:
         "and no project source is uploaded.[/dim]\n"
     )
 
-    checks = (
+    checks: tuple[tuple[str, str, Callable[[], None]], ...] = (
         ("health", "Project health", lambda: health_check(root)),
         ("dependencies", "Dependencies", lambda: check_dependencies(root)),
         ("configuration", "Configuration", lambda: check_config(root)),
@@ -81,7 +80,7 @@ def run_doctor(path: Path) -> None:
     completed = 0
     for index, (_, label, check) in enumerate(active_checks, start=1):
         console.print(Rule(f"[bold]{index}/{len(active_checks)} · {label}[/bold]"))
-        check()
+        check()  # All registered diagnostics are normalized to a no-argument callable.
         completed += 1
 
     console.print(Rule("[bold cyan]Prioritized fix suggestions[/bold cyan]"))

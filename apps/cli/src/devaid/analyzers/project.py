@@ -1,5 +1,3 @@
-"""Basic project structure analyzer."""
-
 from pathlib import Path
 
 from rich.console import Console
