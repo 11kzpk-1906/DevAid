@@ -54,7 +54,8 @@ def _manifest_packages(root: Path) -> list[dict[str, Any]]:
             data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
             project = data.get("project", {})
             for raw in project.get("dependencies", []):
-                name, _, version = re.match(r"\s*([A-Za-z0-9_.-]+)\s*(.*)", raw).groups() if re.match(r"\s*([A-Za-z0-9_.-]+)\s*(.*)", raw) else (raw, "", "")
+                match = re.match(r"\s*([A-Za-z0-9_.-]+)\s*(.*)", raw)
+                name, version = match.groups() if match else (raw, "")
                 packages[(name.lower(), version.strip(), "pypi")] = {"name": name, "version": version.strip() or "unknown", "ecosystem": "pypi", "license": "unknown"}
         except (OSError, ValueError, tomllib.TOMLDecodeError):
             pass

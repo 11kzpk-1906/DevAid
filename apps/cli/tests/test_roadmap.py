@@ -50,7 +50,8 @@ def test_coverage_missing_and_json(tmp_path: Path) -> None:
     assert coverage_report(tmp_path)["percent"] == 80
 
 def test_history_round_trip_and_compare(tmp_path: Path) -> None:
-    before, after=tmp_path/"before.json",tmp_path/"after.json"
+    history_dir=tmp_path/".devaid"/"history"
+    before, after=history_dir/"before.json",history_dir/"after.json"
     save_history(tmp_path,before)
     (tmp_path/"module.py").write_text("pass\n")
     save_history(tmp_path,after)
