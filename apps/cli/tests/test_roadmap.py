@@ -31,6 +31,10 @@ def test_license_inventory_does_not_guess(tmp_path: Path) -> None:
     result = license_inventory(tmp_path)
     assert result["summary"]["unknown"] == 1
     assert result["packages"][0]["license"] == "unknown"
+    (tmp_path / "package-lock.json").write_text(json.dumps({"packages": {"": {}, "node_modules/demo": {"name": "demo", "version": "1.0.0", "license": "MIT"}}}))
+    enriched = license_inventory(tmp_path)
+    assert enriched["summary"]["known"] == 1
+    assert enriched["packages"][0]["license"] == "MIT"
 
 def test_git_review_is_read_only(tmp_path: Path) -> None:
     subprocess.run(["git","init",str(tmp_path)],check=True,capture_output=True)
@@ -43,6 +47,9 @@ def test_git_review_is_read_only(tmp_path: Path) -> None:
     after=subprocess.run(["git","-C",str(tmp_path),"status","--short"],check=True,capture_output=True,text=True).stdout
     assert before == after
     assert result["changes"][0]["risks"] == ["sensitive-file"]
+    (tmp_path / "notes.txt").write_text("untracked")
+    refreshed = git_review(tmp_path)
+    assert refreshed["summary"]["untracked"] == 1
 
 def test_coverage_missing_and_json(tmp_path: Path) -> None:
     assert coverage_report(tmp_path)["available"] is False

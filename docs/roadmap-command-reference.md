@@ -16,14 +16,14 @@ These commands are local-first. They do not upload project files.
 
 ## Limitations
 
-- SBOM extraction currently reads `pyproject.toml`, `requirements.txt`, and `package.json`. It does not resolve transitive dependencies or infer license metadata.
+- SBOM extraction currently reads `pyproject.toml`, `requirements.txt`, and `package.json`. It reads npm package-lock entries (including resolved transitive packages) and includes a limited set of explicitly declared SPDX licenses. It does not resolve Python transitive dependencies.
 - Secret scanning uses bounded local pattern checks and cannot guarantee detection. Findings contain no matched values.
 - SARIF export currently covers secret-scanner rules; other diagnostics can be added as schemas stabilize.
-- License inventory deliberately reports unknown metadata instead of guessing. It is not legal advice.
+- License inventory reports only a limited allowlist of recognized SPDX identifiers from package-lock metadata; other metadata remains unknown. It is not legal advice.
 - Git review reports changed file names and basic sensitive/generated-file heuristics; it cannot prove a change safe or unsafe.
 - Coverage reads existing `coverage.json` or `coverage.xml`; it never executes project code.
 - History snapshots contain timestamps, version, and aggregate file counts, not source code or environment values.
-- The explorer is a static tree view, not an interactive TUI. It is safe in CI and non-interactive terminals.
+- The explorer offers a numbered, keyboard-operated directory navigator in interactive terminals and falls back to a static tree in CI or non-interactive terminals. It does not execute project code or modify files.
 
 ## Analyzer plugin SDK
 
