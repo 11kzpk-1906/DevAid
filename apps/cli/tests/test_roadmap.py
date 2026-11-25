@@ -14,6 +14,7 @@ from devaid.diagnostics.roadmap import (
     save_history,
     scan_secrets,
     validate_sarif,
+    run_coverage,
 )
 
 
@@ -148,3 +149,20 @@ def test_explorer_respects_ignored_directories(tmp_path: Path) -> None:
     lines = explore_project(tmp_path, 3)
     assert any("main.py" in line for line in lines)
     assert not any(".venv" in line for line in lines)
+
+def test_coverage_runner_is_explicit_and_uses_fixed_arguments(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    calls = {}
+
+    def fake_run(args, **kwargs):
+        calls["args"] = args
+        calls["kwargs"] = kwargs
+        return subprocess.CompletedProcess(args, 0, "", "")
+
+    monkeypatch.setattr("devaid.diagnostics.roadmap.subprocess.run", fake_run)
+    run_coverage(tmp_path)
+    assert calls["args"] == ["coverage", "run", "-m", "pytest"]
+    assert calls["kwargs"]["timeout"] == 300
+    assert "shell" not in calls["kwargs"]

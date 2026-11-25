@@ -148,8 +148,8 @@ Run `devaid --help` to see the commands available in your installed version. Com
 | `devaid sarif --path PATH` | Export supported findings as SARIF 2.1.0. |
 | `devaid licenses --path PATH` | Inventory declared dependency licenses without guessing. |
 | `devaid git-review --path PATH` | Review staged and unstaged Git changes read-only. |
-| `devaid coverage --path PATH` | Read existing coverage reports without running tests. |
-| `devaid history --path PATH` / `history-compare BEFORE AFTER` | Save and compare local metadata-only snapshots. |
+| `devaid coverage --path PATH` | Read existing coverage reports; `--run-tests` opts into executing pytest under coverage.py. |
+| `devaid history --path PATH` / `history-compare BEFORE AFTER` | Save and compare local health scores and metadata-only findings. |
 | `devaid explore --path PATH` | Display a bounded project tree. |
 | `devaid plugins` | List installed analyzer plugins without importing plugin code. |
 | `devaid plugin-run NAME PATH` | Explicitly load and run one installed analyzer plugin. |

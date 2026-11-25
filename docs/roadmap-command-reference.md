@@ -9,9 +9,9 @@ These commands are local-first. They do not upload project files.
 | `devaid sarif --path PATH --output results.sarif` | Export supported secret findings as SARIF 2.1.0. |
 | `devaid licenses --path PATH` | Inventory dependencies declared in supported manifests; unknown license data is explicitly marked. |
 | `devaid git-review --path PATH` | Review staged and unstaged Git file changes without modifying the repository. |
-| `devaid coverage --path PATH` | Read existing coverage.py JSON or XML reports; never runs tests. |
-| `devaid history --path PATH --output .devaid/history/run.json` | Save a local metadata-only project snapshot. |
-| `devaid history-compare BEFORE AFTER` | Compare two versioned history snapshots. |
+| `devaid coverage --path PATH` | Read existing coverage.py JSON or XML reports. Optional `--run-tests` explicitly runs pytest under coverage.py with a fixed argument list and timeout. |
+| `devaid history --path PATH --output .devaid/history/run.json` | Save a local metadata-only project snapshot with a transparent six-check health score and redacted finding metadata. |
+| `devaid history-compare BEFORE AFTER` | Compare two versioned history snapshots, scores, and new/resolved/unchanged findings. |
 | `devaid explore --path PATH --depth 2` | Display a terminal-friendly project tree. |
 
 ## Limitations
@@ -21,7 +21,7 @@ These commands are local-first. They do not upload project files.
 - SARIF export currently covers secret-scanner rules; other diagnostics can be added as schemas stabilize.
 - License inventory reports only a limited allowlist of recognized SPDX identifiers from package-lock and Poetry lock metadata; other values remain unknown. Configure `[licenses] deny = ["GPL-3.0-only"]` or an optional `allow` list in `.devaid.toml` to flag packages for review. It is not legal advice.
 - Git review reports changed file names and basic sensitive/generated-file heuristics; it cannot prove a change safe or unsafe.
-- Coverage reads existing `coverage.json` or `coverage.xml`; it never executes project code.
+- Coverage reads existing `coverage.json` or `coverage.xml` by default. `--run-tests` is explicit opt-in to execute pytest under coverage.py with a 300-second timeout.
 - History snapshots contain timestamps, version, and aggregate file counts, not source code or environment values.
 - The explorer offers a numbered, keyboard-operated directory navigator in interactive terminals and falls back to a static tree in CI or non-interactive terminals. It does not execute project code or modify files.
 
