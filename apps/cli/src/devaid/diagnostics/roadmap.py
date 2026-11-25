@@ -635,6 +635,10 @@ def git_review_command(path: Path = Path("."), staged_only: bool = typer.Option(
     for item in result["changes"]:
         table.add_row(item["area"], item["status"], item["path"], ", ".join(item["risks"]) or "—")
     console.print(table)
+    console.print(
+        "Potential secret-like added lines: "
+        f"{result['potential_secret_lines_added']} (values redacted)"
+    )
     console.print("Read-only: Git state and working-tree files were not modified.")
 
 

@@ -94,7 +94,7 @@ def test_git_review_is_read_only_and_includes_untracked(tmp_path: Path) -> None:
         ["git", "-C", str(tmp_path), "config", "user.name", "Test"],
         check=True,
     )
-    (tmp_path / ".env").write_text("placeholder")
+    (tmp_path / ".env").write_text("TOKEN=ghp_" + "A" * 30)
     subprocess.run(["git", "-C", str(tmp_path), "add", ".env"], check=True)
     before = subprocess.run(
         ["git", "-C", str(tmp_path), "status", "--short"],
@@ -111,6 +111,7 @@ def test_git_review_is_read_only_and_includes_untracked(tmp_path: Path) -> None:
     ).stdout
     assert before == after
     assert result["changes"][0]["risks"] == ["sensitive-file"]
+    assert result["potential_secret_lines_added"] == 1
     (tmp_path / "notes.txt").write_text("untracked")
     refreshed = git_review(tmp_path)
     assert refreshed["summary"]["untracked"] == 1
